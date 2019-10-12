@@ -15,4 +15,6 @@ Pre-trained weights: https://www.cs.toronto.edu/~frossard/vgg16/vgg16_weights.np
 |   +-- vgg16/ (directory for the vgg16 implementation)
     |   +-- vgg16.py (the vgg16 implementation)
     |   +-- vgg16_usage.py (shows example usage of vgg16.py)
++-- weights/ (directory for model weights, *not* tracked by git)
++-- data/ (directory for data, *not* tracked by git)
 ```
