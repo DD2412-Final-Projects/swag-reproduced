@@ -2,5 +2,6 @@
 
 Paper: https://arxiv.org/pdf/1902.02476.pdf
 
-## Resources for the implementation
-* Popular TensorFlow implementation of VGG-16: https://github.com/machrisaa/tensorflow-vgg
+## Resources used in the implementation
+* TensorFlow implementation of VGG-16: https://www.cs.toronto.edu/~frossard/post/vgg16/.   
+Pre-trained weights: https://www.cs.toronto.edu/~frossard/vgg16/vgg16_weights.npz
