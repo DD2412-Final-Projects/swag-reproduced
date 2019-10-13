@@ -16,10 +16,10 @@ from networks.vgg16.vgg16 import VGG16
 
 
 # Hyperparameters
-LEARNING_RATE = 1e-6
+LEARNING_RATE = 1e-9
 EPOCHS = 10
-BATCH_SIZE = 128
-DISPLAY_INTERVAL = 5  # How often to display loss/accuracy during training
+BATCH_SIZE = 256
+DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training
 
 
 def parse_arguments():
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     logits = vgg_network.fc3l  # Output of the final layer
 
     # Define loss and optimizer
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y_input))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
     optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
     train_operation = optimizer.minimize(loss)
 
@@ -73,9 +73,10 @@ if __name__ == "__main__":
         sess.run(init)
 
     # Run training
+    # TODO: Add SWA and SWAG
     for epoch in range(EPOCHS):
 
-        print("\n ---- Epoch {} ----\n".format(epoch + 1))
+        print("\n---- Epoch {} ----\n".format(epoch + 1))
         X_train, y_train = utils.shuffle_data(X_train, y_train)
 
         for step in range(n_samples // BATCH_SIZE):
@@ -88,3 +89,6 @@ if __name__ == "__main__":
             if step % DISPLAY_INTERVAL == 0:
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
+
+    # Save weights
+    # TODO

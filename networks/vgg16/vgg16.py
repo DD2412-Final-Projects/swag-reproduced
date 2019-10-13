@@ -15,6 +15,10 @@ import numpy as np
 class VGG16:
 
     def __init__(self, imgs, n_classes, weights=None, sess=None, verbose=False):
+        """
+        Initializes the VGG16 network.
+        """
+
         self.imgs = imgs
         self.n_classes = n_classes
         self.convlayers()
@@ -24,6 +28,9 @@ class VGG16:
             self.load_weights(weights, sess, verbose)
 
     def convlayers(self):
+        """
+        Adds the convolution layers to the network.
+        """
         self.parameters = []
 
         # zero-mean input
@@ -210,6 +217,9 @@ class VGG16:
                                     name='pool4')
 
     def fc_layers(self):
+        """
+        Adds the fully connected layers to the network.
+        """
         # fc1
         with tf.name_scope('fc1') as scope:
             shape = int(np.prod(self.pool5.get_shape()[1:]))
@@ -245,6 +255,9 @@ class VGG16:
             self.parameters += [fc3w, fc3b]
 
     def load_weights(self, weight_file, sess, verbose=False):
+        """
+        Initializes the weights of the network to the values in weight_file.
+        """
         weights = np.load(weight_file)
         keys = sorted(weights.keys())
         if verbose:
