@@ -14,6 +14,11 @@ import tensorflow as tf
 from networks.vgg16.vgg16 import vgg16
 
 
+# Hyperparameters
+LEARNING_RATE = 1e-4
+EPOCHS = 10
+
+
 def parse_arguments():
     """
     Parses input arguments.
@@ -26,6 +31,8 @@ def parse_arguments():
                         help="Path to pretrained weights for the network.")
 
     args = parser.parse_args()
+    assert args.data_path is not None, "Data path must be specified."
+
     return args
 
 
@@ -34,11 +41,26 @@ if __name__ == "__main__":
     # Parse input arguments
     args = parse_arguments()
 
-    # Load network architecture
-    sess = tf.Session()
-    imgs = tf.placeholder(tf.float32, [None, 224, 224, 3])
-    vgg = vgg16(imgs, args.weight_path, sess, verbose=True)
-
     # Load training data
     X_train = np.load(args.data_path + "X_train.npy")
     y_train = np.load(args.data_path + "y_train.npy")
+    n_classes = 10
+
+    # Load network architecture
+    sess = tf.Session()
+    X_input = tf.placeholder(tf.float32, [None, 224, 224, 3])
+    y_input = tf.placeholder(tf.float32, [None, n_classes])
+    vgg = vgg16(X_input, args.weight_path, sess, verbose=True)
+
+    # Prepare for training
+    if args.weight_path is not None:  # Initialize weights if not using pretrained weights
+        init = tf.initialize_all_variables()
+        sess.run(init)
+
+    loss = tf.nn.softmax_cross_entropy_with_logits(logits=vgg.fc3l, labels=y_input)
+    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    train = optimizer.minimize(loss)
+
+    # Run training
+    for epoch in range(EPOCHS):
+        pass

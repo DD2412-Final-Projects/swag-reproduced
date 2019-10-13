@@ -34,11 +34,11 @@ def parse_arguments():
     assert args.train_frac + args.valid_frac == 1.0, "Train/valid data fractions must sum to one."
     assert args.save_path is not None, "Save path must be specified."
     if os.path.exists(args.save_path):
-        response = input("Save path already exists. Previous data may be overwritten. Continue? >> (Y/n)")
+        response = input("Save path already exists. Previous data may be overwritten. Continue? (Y/n) >> ")
         if response in ["n", "N", "no"]:
             exit()
     else:
-        response = input("Save path does not exist. Create it? >> (Y/n)")
+        response = input("Save path does not exist. Create it? (Y/n) >> ")
         if response in ["n", "N", "no"]:
             exit()
         os.makedirs(args.save_path)
@@ -52,7 +52,7 @@ def read_CIFAR_10(cifar_path, train=True):
     reads the dataset, and returns it as numpy arrays:
 
     data (#samples, 32, 32, 3)
-    labels (#samples, 1)
+    labels (#samples, 10)
 
     The boolean argument train determines whether the train or test set is read.
     """
@@ -81,7 +81,8 @@ def read_CIFAR_10(cifar_path, train=True):
     data = np.reshape(data, (data.shape[0] * data.shape[1], 3, 32, 32)).transpose(0, 2, 3, 1)
 
     labels = np.asarray(labels)
-    labels = np.reshape(labels, (labels.shape[0] * labels.shape[1], 1))
+    labels = np.reshape(labels, (labels.shape[0] * labels.shape[1],)).tolist()
+    labels = utils.index_to_one_hot(labels, 10)
 
     return data, labels
 
@@ -109,3 +110,5 @@ if __name__ == "__main__":
         np.save(args.save_path + "y_valid.npy", y_valid)
     np.save(args.save_path + "X_test.npy", X_test)
     np.save(args.save_path + "y_test.npy", y_test)
+
+    print("Processed data was saved to {} in .npy files.".format(args.save_path))

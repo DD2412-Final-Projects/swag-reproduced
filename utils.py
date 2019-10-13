@@ -65,3 +65,13 @@ def split_data(X, y, train_frac, valid_frac, test_frac, shuffle=True):
     assert X_train.shape[0] + X_valid.shape[0] + X_test.shape[0] == n_examples, "Data split failed"
 
     return (X_train, y_train, X_valid, y_valid, X_test, y_test)
+
+
+def index_to_one_hot(y, n_classes):
+    """
+    Converts a list of indices to one-hot encoding.
+    Example: y = [1, 0, 3] => np.array([[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]])
+    """
+    one_hot = np.eye(n_classes)[y]
+
+    return one_hot
