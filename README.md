@@ -11,6 +11,8 @@ Pre-trained weights: https://www.cs.toronto.edu/~frossard/vgg16/vgg16_weights.np
 ```
 +-- train.py (loads a network architecture, runs SWAG to train it and saves the learned weights)
 +-- test.py (loads learned weights, runs the SWAG test procedure and reports resulting metrics and plots)
++-- preprocess_data (processes raw datasets to a format to train/validate/test on)
++-- utils.py (utility functions)
 +-- networks/ (directory with all architectures)
 |   +-- vgg16/ (directory for the vgg16 implementation)
     |   +-- vgg16.py (the vgg16 implementation)
