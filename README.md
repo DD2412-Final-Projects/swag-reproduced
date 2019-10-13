@@ -6,6 +6,9 @@ Paper: https://arxiv.org/pdf/1902.02476.pdf
 * TensorFlow implementation of VGG-16: https://www.cs.toronto.edu/~frossard/post/vgg16/.   
 Pre-trained weights: https://www.cs.toronto.edu/~frossard/vgg16/vgg16_weights.npz
 
+## Datasets used
+* CIFAR-10/100: https://www.cs.toronto.edu/~kriz/cifar.html
+
 ## Suggested file structure
 
 ```
