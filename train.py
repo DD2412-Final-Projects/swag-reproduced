@@ -11,12 +11,15 @@ import argparse
 import numpy as np
 import tensorflow as tf
 
-from networks.vgg16.vgg16 import vgg16
+import utils
+from networks.vgg16.vgg16 import VGG16
 
 
 # Hyperparameters
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 1e-6
 EPOCHS = 10
+BATCH_SIZE = 128
+DISPLAY_INTERVAL = 5  # How often to display loss/accuracy during training
 
 
 def parse_arguments():
@@ -44,23 +47,44 @@ if __name__ == "__main__":
     # Load training data
     X_train = np.load(args.data_path + "X_train.npy")
     y_train = np.load(args.data_path + "y_train.npy")
-    n_classes = 10
+    n_samples, n_classes = y_train.shape
+    width, height, n_channels = X_train.shape[1:]
 
     # Load network architecture
     sess = tf.Session()
-    X_input = tf.placeholder(tf.float32, [None, 224, 224, 3])
+    X_input = tf.placeholder(tf.float32, [None, width, height, n_channels])
     y_input = tf.placeholder(tf.float32, [None, n_classes])
-    vgg = vgg16(X_input, args.weight_path, sess, verbose=True)
+    vgg_network = VGG16(X_input, n_classes, args.weight_path, sess, verbose=True)
+    logits = vgg_network.fc3l  # Output of the final layer
 
-    # Prepare for training
-    if args.weight_path is not None:  # Initialize weights if not using pretrained weights
+    # Define loss and optimizer
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y_input))
+    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    train_operation = optimizer.minimize(loss)
+
+    # Define evaluation metrics
+    predictions = tf.nn.softmax(logits)
+    predicted_correctly = tf.equal(tf.argmax(predictions, 1), tf.argmax(y_input, 1))
+    accuracy = tf.reduce_mean(tf.cast(predicted_correctly, tf.float32))
+
+    # Initialize weights if not using pretrained weights
+    if args.weight_path is None:
         init = tf.initialize_all_variables()
         sess.run(init)
 
-    loss = tf.nn.softmax_cross_entropy_with_logits(logits=vgg.fc3l, labels=y_input)
-    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
-    train = optimizer.minimize(loss)
-
     # Run training
     for epoch in range(EPOCHS):
-        pass
+
+        print("\n ---- Epoch {} ----\n".format(epoch + 1))
+        X_train, y_train = utils.shuffle_data(X_train, y_train)
+
+        for step in range(n_samples // BATCH_SIZE):
+
+            X_batch = X_train[step: step + BATCH_SIZE]
+            y_batch = y_train[step: step + BATCH_SIZE]
+
+            sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch})
+
+            if step % DISPLAY_INTERVAL == 0:
+                loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
+                print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))

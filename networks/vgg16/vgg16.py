@@ -12,9 +12,11 @@ import tensorflow as tf
 import numpy as np
 
 
-class vgg16:
-    def __init__(self, imgs, weights=None, sess=None, verbose=False):
+class VGG16:
+
+    def __init__(self, imgs, n_classes, weights=None, sess=None, verbose=False):
         self.imgs = imgs
+        self.n_classes = n_classes
         self.convlayers()
         self.fc_layers()
         self.probs = tf.nn.softmax(self.fc3l)
@@ -234,10 +236,10 @@ class vgg16:
 
         # fc3
         with tf.name_scope('fc3') as scope:
-            fc3w = tf.Variable(tf.truncated_normal([4096, 1000],
+            fc3w = tf.Variable(tf.truncated_normal([4096, self.n_classes],
                                                    dtype=tf.float32,
                                                    stddev=1e-1), name='weights')
-            fc3b = tf.Variable(tf.constant(1.0, shape=[1000], dtype=tf.float32),
+            fc3b = tf.Variable(tf.constant(1.0, shape=[self.n_classes], dtype=tf.float32),
                                trainable=True, name='biases')
             self.fc3l = tf.nn.bias_add(tf.matmul(self.fc2, fc3w), fc3b)
             self.parameters += [fc3w, fc3b]
