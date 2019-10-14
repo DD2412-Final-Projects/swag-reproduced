@@ -6,7 +6,9 @@ Trains a model using SWAG and saves the learned weight distribution parameters.
 3. Train the model with SWAG.
 4. Save the learned weight distribution parameters.
 """
-
+"""
+Test for git
+"""
 import argparse
 import numpy as np
 import tensorflow as tf
