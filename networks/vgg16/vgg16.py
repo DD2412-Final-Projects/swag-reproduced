@@ -14,7 +14,7 @@ import numpy as np
 
 class VGG16:
 
-    def __init__(self, imgs, n_classes, weights=None, sess=None, verbose=False):
+    def __init__(self, imgs, n_classes, weights=None, sess=None):
         """
         Initializes the VGG16 network.
         """
@@ -26,7 +26,7 @@ class VGG16:
         self.fc_layers()
         self.probs = tf.nn.softmax(self.fc3l)
         if weights is not None and sess is not None:
-            self.load_weights(weights, sess, verbose)
+            self.load_weights(weights, sess)
 
     def convlayers(self):
         """
@@ -271,7 +271,7 @@ class VGG16:
             self.parameters += [fc3w, fc3b]
             self.weight_keys += ["fc3_W", "fc3_b"]
 
-    def load_weights(self, weight_file, sess, verbose=False):
+    def load_weights(self, weight_file, sess):
         """
         Initializes the weights of the network to the values in weight_file.
         """

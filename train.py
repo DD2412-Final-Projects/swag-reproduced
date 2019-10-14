@@ -68,7 +68,7 @@ if __name__ == "__main__":
     sess = tf.Session()
     X_input = tf.placeholder(tf.float32, [None, width, height, n_channels])
     y_input = tf.placeholder(tf.float32, [None, n_classes])
-    vgg_network = VGG16(X_input, n_classes, args.weight_path, sess, verbose=True)
+    vgg_network = VGG16(X_input, n_classes, weights=None, sess=sess)
     logits = vgg_network.fc3l  # Output of the final layer
 
     # Define loss and optimizer
@@ -131,7 +131,7 @@ if __name__ == "__main__":
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
-        # Save all variables of the TensorFlow graph to a checkpoint after each epoch.
+        # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
         if (epoch % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print("Saved checkpoint for epoch {}".format(epoch))
