@@ -12,6 +12,7 @@ Test for git
 import argparse
 import numpy as np
 import tensorflow as tf
+import os
 
 import utils
 from networks.vgg16.vgg16 import VGG16
@@ -30,10 +31,13 @@ def parse_arguments():
     """
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-data_path", dest="data_path", metavar="PATH TO DATA", default=None,
+    parser.add_argument("--data_path", dest="data_path", metavar="PATH TO DATA", default=None,
                         help="Path to data that has been preprocessed using preprocess_data.py.")
-    parser.add_argument("-weight_path", dest="weight_path", metavar="PATH TO WEIGTHS", default=None,
+    parser.add_argument("--weight_path", dest="weight_path", metavar="PATH TO WEIGTHS", default=None,
                         help="Path to pretrained weights for the network.")
+
+    parser.add_argument("--save_model", dest="save_path", metavar='SAVE MODEL PATH', default=None,
+                        help="The path where the model should be saved.")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
@@ -69,10 +73,35 @@ if __name__ == "__main__":
     predicted_correctly = tf.equal(tf.argmax(predictions, 1), tf.argmax(y_input, 1))
     accuracy = tf.reduce_mean(tf.cast(predicted_correctly, tf.float32))
 
+    # checkpoint for getting the weights
+    checkpoint = tf.train.Saver()
+    save_dir = args.save_model
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    save_path = os.path.join(save_dir, 'model')
+
+    try:
+        print("Trying to restore last checkpoint ...")
+
+        # Use TensorFlow to find the latest checkpoint - if any.
+        last_ckpt_path = tf.train.latest_checkpoint(checkpoint_dir=save_dir)
+
+        # Try and load the data in the checkpoint.
+        checkpoint.restore(sess, save_path=last_ckpt_path)
+
+        # If we get to this point, the checkpoint was successfully loaded.
+        print("Restored checkpoint from:", last_ckpt_path)
+    except:
+        # If the above failed for some reason, simply
+        # initialize all the variables for the TensorFlow graph.
+        print("Failed to restore checkpoint. Initializing variables instead.")
+        sess.run(tf.initialize_all_variables())
+    """
     # Initialize weights if not using pretrained weights
     if args.weight_path is None:
         init = tf.initialize_all_variables()
         sess.run(init)
+    """
 
     # Run training
     # TODO: Add SWA and SWAG
@@ -92,5 +121,8 @@ if __name__ == "__main__":
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
-    # Save weights
-    # TODO
+        # Save all variables of the TensorFlow graph to a checkpoint after each epoch.
+        checkpoint.save(sess, save_path=save_path)
+        a = tf.saved_model.save()
+        print("Saved checkpoint.")
+
