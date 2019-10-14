@@ -6,9 +6,7 @@ Trains a model using SWAG and saves the learned weight distribution parameters.
 3. Train the model with SWAG.
 4. Save the learned weight distribution parameters.
 """
-"""
-Test for git
-"""
+
 import argparse
 import numpy as np
 import tensorflow as tf
@@ -17,11 +15,19 @@ import os
 import utils
 from networks.vgg16.vgg16 import VGG16
 
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 # Hyperparameters
-LEARNING_RATE = 1e-9
-EPOCHS = 10
-BATCH_SIZE = 256
+tf.set_random_seed(12)
+LEARNING_RATE = 5e-5
+MOMENTUM = 0.9
+EPOCHS = 100
+BATCH_SIZE = 128
 DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training
 
 
@@ -65,7 +71,8 @@ if __name__ == "__main__":
 
     # Define loss and optimizer
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
-    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    # optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    optimizer = tf.compat.v1.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
@@ -108,8 +115,10 @@ if __name__ == "__main__":
     for epoch in range(EPOCHS):
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
+        print("Learning rate {}".format(LEARNING_RATE))
         X_train, y_train = utils.shuffle_data(X_train, y_train)
-
+        if .9*EPOCHS > epoch > .5*EPOCHS:
+            LEARNING_RATE -= (5e-5 - 1e-5) / .4*EPOCHS
         for step in range(n_samples // BATCH_SIZE):
 
             X_batch = X_train[step: step + BATCH_SIZE]
