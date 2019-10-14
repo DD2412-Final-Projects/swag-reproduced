@@ -34,7 +34,7 @@ def parse_arguments():
     parser.add_argument("--weight_path", dest="weight_path", metavar="PATH TO WEIGTHS", default=None,
                         help="Path to pretrained weights for the network.")
 
-    parser.add_argument("--save_model", dest="save_path", metavar='SAVE MODEL PATH', default=None,
+    parser.add_argument("--save_model", dest="save_model", metavar='SAVE MODEL PATH', default=None,
                         help="The path where the model should be saved.")
 
     args = parser.parse_args()
@@ -119,8 +119,7 @@ if __name__ == "__main__":
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
-        # Save all variables of the TensorFlow graph to a checkpoint after each epoch.
-        checkpoint.save(sess, save_path=save_path)
-        a = tf.saved_model.save()
-        print("Saved checkpoint.")
-
+            # Save all variables of the TensorFlow graph to a checkpoint after each epoch.
+            checkpoint.save(sess, save_path=save_path, global_step=step)
+            a = tf.saved_model.save()
+            print("Saved checkpoint.")
