@@ -9,6 +9,7 @@ Performs preprocessing of a dataset before training.
 import argparse
 import numpy as np
 import os
+import matplotlib as plt
 
 import utils
 
@@ -114,8 +115,6 @@ def read_CIFAR_100(cifar_path, train = True):
 
         file_name = cifar_path + "train"
         data_dict = utils.unpickle(file_name)
-        for key, value in data_dict.items():
-            print(key, len(value))
         batch_data = data_dict[b"data"]
         batch_labels = data_dict[b'fine_labels' ]
         data.append(batch_data)
@@ -137,8 +136,6 @@ def read_CIFAR_100(cifar_path, train = True):
     labels = utils.index_to_one_hot(labels, 100)
 
     return data, labels
-
-
 
 if __name__ == "__main__":
 
