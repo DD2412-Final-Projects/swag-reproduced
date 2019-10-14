@@ -124,4 +124,4 @@ if __name__ == "__main__":
             # Save all variables of the TensorFlow graph to a checkpoint after each epoch.
             if (step % 50 == 0):
                 checkpoint.save(sess, save_path=save_path, global_step=step)
-                print("Saved checkpoint for step size:.")
+                print("Saved checkpoint for step size:{}".format(step))
