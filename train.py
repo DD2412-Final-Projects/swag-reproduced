@@ -26,7 +26,7 @@ session = InteractiveSession(config=config)
 tf.set_random_seed(12)
 LEARNING_RATE = 5e-10
 MOMENTUM = 0.9
-EPOCHS = 10
+EPOCHS = 100
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(LEARNING_RATE))
-        if .9 * EPOCHS >= epoch >= .5 * EPOCHS:
+        if .9 * EPOCHS >= epoch+1 >= .5 * EPOCHS:
             LEARNING_RATE -= (5e-10 - 1e-10) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
