@@ -21,6 +21,7 @@ class VGG16:
 
         self.imgs = imgs
         self.n_classes = n_classes
+        self.weight_keys = []
         self.convlayers()
         self.fc_layers()
         self.probs = tf.nn.softmax(self.fc3l)
@@ -48,6 +49,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv1_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv1_1_W", "conv1_1_b"]
 
         # conv1_2
         with tf.name_scope('conv1_2') as scope:
@@ -59,6 +61,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv1_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv1_2_W", "conv1_2_b"]
 
         # pool1
         self.pool1 = tf.nn.max_pool(self.conv1_2,
@@ -77,6 +80,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv2_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv2_1_W", "conv2_1_b"]
 
         # conv2_2
         with tf.name_scope('conv2_2') as scope:
@@ -88,6 +92,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv2_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv2_2_W", "conv2_2_b"]
 
         # pool2
         self.pool2 = tf.nn.max_pool(self.conv2_2,
@@ -106,6 +111,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv3_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv3_1_W", "conv3_1_b"]
 
         # conv3_2
         with tf.name_scope('conv3_2') as scope:
@@ -117,6 +123,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv3_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv3_2_W", "conv3_2_b"]
 
         # conv3_3
         with tf.name_scope('conv3_3') as scope:
@@ -128,6 +135,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv3_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv3_3_W", "conv3_3_b"]
 
         # pool3
         self.pool3 = tf.nn.max_pool(self.conv3_3,
@@ -146,6 +154,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv4_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv4_1_W", "conv4_1_b"]
 
         # conv4_2
         with tf.name_scope('conv4_2') as scope:
@@ -157,6 +166,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv4_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv4_2_W", "conv4_2_b"]
 
         # conv4_3
         with tf.name_scope('conv4_3') as scope:
@@ -168,6 +178,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv4_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv4_3_W", "conv4_3_b"]
 
         # pool4
         self.pool4 = tf.nn.max_pool(self.conv4_3,
@@ -186,6 +197,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv5_1 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv5_1_W", "conv5_1_b"]
 
         # conv5_2
         with tf.name_scope('conv5_2') as scope:
@@ -197,6 +209,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv5_2 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv5_2_W", "conv5_2_b"]
 
         # conv5_3
         with tf.name_scope('conv5_3') as scope:
@@ -208,6 +221,7 @@ class VGG16:
             out = tf.nn.bias_add(conv, biases)
             self.conv5_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
+            self.weight_keys += ["conv5_3_W", "conv5_3_b"]
 
         # pool5
         self.pool5 = tf.nn.max_pool(self.conv5_3,
@@ -232,6 +246,7 @@ class VGG16:
             fc1l = tf.nn.bias_add(tf.matmul(pool5_flat, fc1w), fc1b)
             self.fc1 = tf.nn.relu(fc1l)
             self.parameters += [fc1w, fc1b]
+            self.weight_keys += ["fc1_W", "fc1_b"]
 
         # fc2
         with tf.name_scope('fc2') as scope:
@@ -243,6 +258,7 @@ class VGG16:
             fc2l = tf.nn.bias_add(tf.matmul(self.fc1, fc2w), fc2b)
             self.fc2 = tf.nn.relu(fc2l)
             self.parameters += [fc2w, fc2b]
+            self.weight_keys += ["fc2_W", "fc2_b"]
 
         # fc3
         with tf.name_scope('fc3') as scope:
@@ -253,6 +269,7 @@ class VGG16:
                                trainable=True, name='biases')
             self.fc3l = tf.nn.bias_add(tf.matmul(self.fc2, fc3w), fc3b)
             self.parameters += [fc3w, fc3b]
+            self.weight_keys += ["fc3_W", "fc3_b"]
 
     def load_weights(self, weight_file, sess, verbose=False):
         """
@@ -260,9 +277,17 @@ class VGG16:
         """
         weights = np.load(weight_file)
         keys = sorted(weights.keys())
-        if verbose:
-            print("\n ---- VGG16 Architecture ----")
         for i, k in enumerate(keys):
             sess.run(self.parameters[i].assign(weights[k]))
-            if verbose:
-                print(i, k, np.shape(weights[k]))
+
+    def save_weights(self, weight_path, weight_file_name, sess):
+        """
+        Saves the current weights of the network to a file with the name
+        weight_file_name in weight_path.
+        """
+
+        keys = sorted(self.weight_keys)
+        weight_dict = {}
+        for i, k in enumerate(keys):
+            weight_dict[k] = sess.run(self.parameters[i])
+        np.savez(weight_path + weight_file_name, **weight_dict)
