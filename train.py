@@ -122,6 +122,7 @@ if __name__ == "__main__":
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
             # Save all variables of the TensorFlow graph to a checkpoint after each epoch.
-            checkpoint.save(sess, save_path=save_path, global_step=step)
-            a = tf.saved_model.save()
-            print("Saved checkpoint.")
+            if (step %50 == 0):
+                checkpoint.save(sess, save_path=save_path, global_step=step)
+                print(f"Saved checkpoint for step size: {step}.")
+
