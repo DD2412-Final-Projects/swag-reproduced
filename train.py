@@ -142,3 +142,4 @@ if __name__ == "__main__":
             os.makedirs(args.save_weight_path)
         vgg_network.save_weights(args.save_weight_path, "sgd_weights", sess)
         print("Weights were saved in {}".format(args.save_weight_path + "sgd_weights.npz"))
+
