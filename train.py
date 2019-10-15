@@ -24,11 +24,11 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 5e-10
+START_LEARNING_RATE = 1e-5
 MOMENTUM = 0.9
 EPOCHS = 100
 BATCH_SIZE = 128
-DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
+DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 
 
@@ -124,8 +124,8 @@ if __name__ == "__main__":
 
         for step in range(n_samples // BATCH_SIZE):
 
-            X_batch = X_train[step: step + BATCH_SIZE]
-            y_batch = y_train[step: step + BATCH_SIZE]
+            X_batch = X_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
+            y_batch = y_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
 
             sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch, learning_rate: current_learning_rate})
 
