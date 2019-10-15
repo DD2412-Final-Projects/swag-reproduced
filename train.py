@@ -24,9 +24,9 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 5e-10
+START_LEARNING_RATE = 5e-2
 MOMENTUM = 0.9
-EPOCHS = 100
+EPOCHS = 20
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     # Load training data
-    X_train = np.load(args.data_path + "X_train.npy")
+    X_train = np.load(args.data_path + "X_train.npy")/255
     y_train = np.load(args.data_path + "y_train.npy")
     n_samples, n_classes = y_train.shape
     width, height, n_channels = X_train.shape[1:]
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
     learning_rate = tf.placeholder(tf.float32, shape=[])
     optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
-    # optimizer = tf.compat.v1.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
+    # optimizer = tf.compat.v1.train.MomentumOptimizer(learning_rate, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
@@ -119,8 +119,8 @@ if __name__ == "__main__":
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(current_learning_rate))
-        if .9 * EPOCHS >= epoch + 1 >= .5 * EPOCHS:
-            current_learning_rate -= (5e-10 - 1e-10) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
+        if .9 * EPOCHS > epoch + 1 >= .5 * EPOCHS:
+            current_learning_rate -= (5e-2 - 1e-2) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
-        if (epoch % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
+        if (epoch+1 % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print("Saved checkpoint for epoch {}".format(epoch))
 
