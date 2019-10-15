@@ -141,7 +141,6 @@ if __name__ == "__main__":
     validation_loss, validation_acc = [], []
 
     # Run training with SWA
-    current_learning_rate = START_LEARNING_RATE
     for epoch in range(EPOCHS):
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
@@ -150,7 +149,7 @@ if __name__ == "__main__":
             X_batch = X_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
             y_batch = y_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
 
-            sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch, learning_rate: current_learning_rate})
+            sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch})
 
             if step % DISPLAY_INTERVAL == 0:
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
@@ -182,7 +181,7 @@ if __name__ == "__main__":
     SWA_weights = [weights / (SWA_END_EPOCH - SWA_START_EPOCH) for weights in SWA_weights]
 
     # Save SWA-weights
-    vgg_network.save_weights(args.swa_save_path, "swa_weights", sess)
+    vgg_network.save_weights(args.save_weight_path, "swa_weights", sess)
 
     # Plot validation stats
     plot_cost(validation_loss)
