@@ -24,11 +24,11 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 0.05
+START_LEARNING_RATE = 1e-2
 MOMENTUM = 0.9
-EPOCHS = 100
+EPOCHS = 20
 BATCH_SIZE = 128
-DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training (steps)
+DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
     learning_rate = tf.placeholder(tf.float32, shape=[])
     optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
-    # optimizer = tf.compat.v1.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
+    # optimizer = tf.compat.v1.train.MomentumOptimizer(learning_rate, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(current_learning_rate))
         if .9 * EPOCHS >= epoch + 1 >= .5 * EPOCHS:
-            current_learning_rate -= (5e-10 - 1e-10) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
+            current_learning_rate -= (1e-2 - 1e-3) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
 
