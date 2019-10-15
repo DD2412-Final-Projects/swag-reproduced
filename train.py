@@ -24,7 +24,7 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 1e-2
+START_LEARNING_RATE = 5e-2
 MOMENTUM = 0.9
 EPOCHS = 20
 BATCH_SIZE = 128
@@ -99,8 +99,8 @@ if __name__ == "__main__":
     # Define loss and optimizer
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
     learning_rate = tf.placeholder(tf.float32, shape=[])
-    optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
-    # optimizer = tf.compat.v1.train.MomentumOptimizer(learning_rate, MOMENTUM)
+    # optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
+    optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(learning_rate, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
