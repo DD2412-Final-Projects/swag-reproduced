@@ -163,7 +163,7 @@ if __name__ == "__main__":
         validation_acc.append(v_acc)
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
-        if (epoch + 1 % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
+        if ((epoch + 1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print("Saved checkpoint for epoch {}".format(epoch))
 

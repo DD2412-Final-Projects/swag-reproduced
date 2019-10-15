@@ -31,7 +31,7 @@ MOMENTUM = 0.9
 EPOCHS = 20
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
-CHECKPOINT_INTERVAL = 1  # How often to save checkpoints (epochs)
+CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 
 
 def parse_arguments():
