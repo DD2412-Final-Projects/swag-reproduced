@@ -11,7 +11,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 import os
-
+import matplotlib.pyplot as plt
 import utils
 from networks.vgg16.vgg16 import VGG16
 
@@ -53,14 +53,39 @@ def parse_arguments():
     return args
 
 
+def plot_cost(c_v):
+    plt.figure()
+    plt.plot(c_v, label='Validation cost')
+    plt.legend()
+    title = 'Costs per epoch'
+    plt.title(title)
+    plt.xlabel("Epoch")
+    plt.ylabel("Cost")
+    plt.show()
+
+
+def plot_acc(acc_v):
+    plt.figure()
+    plt.plot(acc_v, label='Validation acc')
+    plt.legend()
+    title = 'Accuracy per epoch'
+    plt.title(title)
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.show()
+
+
 if __name__ == "__main__":
 
     # Parse input arguments
     args = parse_arguments()
 
-    # Load training data
+    # Load training and validation data
     X_train = np.load(args.data_path + "X_train.npy")
+    X_val = np.load(args.data_path + "X_valid.npy")
+
     y_train = np.load(args.data_path + "y_train.npy")
+    y_val = np.load(args.data_path + "y_valid.npy")
     n_samples, n_classes = y_train.shape
     width, height, n_channels = X_train.shape[1:]
 
@@ -111,16 +136,18 @@ if __name__ == "__main__":
     else:
         sess.run(tf.initialize_all_variables())
 
+    # initialization for plots
+    validation_loss, validation_acc = [], []
+
     # Run training
     current_learning_rate = START_LEARNING_RATE
     for epoch in range(EPOCHS):
 
-        X_train, y_train = utils.shuffle_data(X_train, y_train)
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(current_learning_rate))
-        if .9 * EPOCHS >= epoch + 1 >= .5 * EPOCHS:
-            current_learning_rate -= (1e-2 - 1e-3) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
+        if .9 * EPOCHS > epoch + 1 >= .5 * EPOCHS:
+            current_learning_rate -= (5e-2 - 1e-2) / (.4 * EPOCHS)  # Linear decay from 5e-2 to 1e-2 over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
 
@@ -133,8 +160,15 @@ if __name__ == "__main__":
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
+        # Storing validation data for plotting
+        X_train, y_train = utils.shuffle_data(X_train, y_train)
+        X_valid, y_valid = utils.shuffle_data(X_val, y_val)
+        v_loss, v_acc = sess.run([loss, accuracy], feed_dict={X_input: X_val[:1000], y_input: y_val[:1000]})
+        validation_loss.append(v_loss)
+        validation_acc.append(v_acc)
+
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
-        if (epoch % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
+        if (epoch+1 % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print("Saved checkpoint for epoch {}".format(epoch))
 
@@ -144,3 +178,5 @@ if __name__ == "__main__":
             os.makedirs(args.save_weight_path)
         vgg_network.save_weights(args.save_weight_path, "sgd_weights", sess)
         print("Weights were saved in {}".format(args.save_weight_path + "sgd_weights.npz"))
+    plot_cost(validation_loss)
+    plot_acc(validation_acc)
