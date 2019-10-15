@@ -24,7 +24,7 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 1e-5
+START_LEARNING_RATE = 0.05
 MOMENTUM = 0.9
 EPOCHS = 100
 BATCH_SIZE = 128
