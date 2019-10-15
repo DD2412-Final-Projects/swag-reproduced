@@ -229,8 +229,8 @@ class VGG16:
         # fc1
         with tf.name_scope('fc1') as scope:
             shape = int(np.prod(self.pool5.get_shape()[1:]))
-            fc1w = tf.Variable(self.fc_initializer([shape, 4096]), name='weights')
-            fc1b = tf.Variable(tf.constant(1.0, shape=[4096], dtype=tf.float32),
+            fc1w = tf.Variable(self.fc_initializer([shape, 512]), name='weights')
+            fc1b = tf.Variable(tf.constant(1.0, shape=[512], dtype=tf.float32),
                                trainable=True, name='biases')
             pool5_flat = tf.reshape(self.pool5, [-1, shape])
             fc1l = tf.nn.bias_add(tf.matmul(pool5_flat, fc1w), fc1b)
@@ -240,8 +240,8 @@ class VGG16:
 
         # fc2
         with tf.name_scope('fc2') as scope:
-            fc2w = tf.Variable(self.fc_initializer([4096, 4096]), name='weights')
-            fc2b = tf.Variable(tf.constant(1.0, shape=[4096], dtype=tf.float32),
+            fc2w = tf.Variable(self.fc_initializer([512, 512]), name='weights')
+            fc2b = tf.Variable(tf.constant(1.0, shape=[512], dtype=tf.float32),
                                trainable=True, name='biases')
             fc2l = tf.nn.bias_add(tf.matmul(self.fc1, fc2w), fc2b)
             self.fc2 = tf.nn.relu(fc2l)
@@ -250,7 +250,7 @@ class VGG16:
 
         # fc3
         with tf.name_scope('fc3') as scope:
-            fc3w = tf.Variable(self.fc_initializer([4096, self.n_classes]), name='weights')
+            fc3w = tf.Variable(self.fc_initializer([512, self.n_classes]), name='weights')
             fc3b = tf.Variable(tf.constant(1.0, shape=[self.n_classes], dtype=tf.float32),
                                trainable=True, name='biases')
             self.fc3l = tf.nn.bias_add(tf.matmul(self.fc2, fc3w), fc3b)
