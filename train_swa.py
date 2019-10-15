@@ -10,19 +10,28 @@ import argparse
 import numpy as np
 import tensorflow as tf
 import os
+import matplotlib.pyplot as plt
 
 import utils
 from networks.vgg16.vgg16 import VGG16
 
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
+
 
 # Hyperparameters
-LEARNING_RATE = 1e-9
-EPOCHS = 10
+START_LEARNING_RATE = 0.01
+MOMENTUM = 0.9
+EPOCHS = 20
 BATCH_SIZE = 128
-DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training
+DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
+CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 SWA_START_EPOCH = 0
 SWA_END_EPOCH = 5
-CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 
 
 def parse_arguments():
@@ -34,7 +43,7 @@ def parse_arguments():
     parser.add_argument("--data_path", dest="data_path", metavar="PATH TO DATA", default=None,
                         help="Path to data that has been preprocessed using preprocess_data.py.")
     parser.add_argument("--save_weight_path", dest="save_weight_path", metavar="SAVE WEIGTH PATH", default=None,
-                        help="Path to pretrained weights for the network.")
+                        help="Path to save trained weights for the network to.")
     parser.add_argument("--save_checkpoint_path", dest="save_checkpoint_path", metavar="SAVE CHECKPOINT PATH", default=None,
                         help="Path to save checkpoints to")
     parser.add_argument("--load_checkpoint_path", dest="load_checkpoint_path", metavar='LOAD CHECKPOINT PATH', default=None,
@@ -46,14 +55,39 @@ def parse_arguments():
     return args
 
 
+def plot_cost(c_v):
+    plt.figure()
+    plt.plot(c_v, label='Validation cost')
+    plt.legend()
+    title = 'Costs per epoch'
+    plt.title(title)
+    plt.xlabel("Epoch")
+    plt.ylabel("Cost")
+    plt.show()
+
+
+def plot_acc(acc_v):
+    plt.figure()
+    plt.plot(acc_v, label='Validation acc')
+    plt.legend()
+    title = 'Accuracy per epoch'
+    plt.title(title)
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.show()
+
+
 if __name__ == "__main__":
 
     # Parse input arguments
     args = parse_arguments()
 
-    # Load training data
+    # Load training data and validation data
     X_train = np.load(args.data_path + "X_train.npy")
+    X_val = np.load(args.data_path + "X_valid.npy")
+
     y_train = np.load(args.data_path + "y_train.npy")
+    y_val = np.load(args.data_path + "y_valid.npy")
     n_samples, n_classes = y_train.shape
     width, height, n_channels = X_train.shape[1:]
 
@@ -66,7 +100,9 @@ if __name__ == "__main__":
 
     # Define loss and optimizer
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
-    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    learning_rate = tf.placeholder(tf.float32, shape=[])
+    # optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
+    optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(learning_rate, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
@@ -102,25 +138,38 @@ if __name__ == "__main__":
     else:
         sess.run(tf.initialize_all_variables())
 
+    # initialization for plots
+    validation_loss, validation_acc = [], []
+
     # Run training with SWA
+    current_learning_rate = START_LEARNING_RATE
     for epoch in range(EPOCHS):
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
-        X_train, y_train = utils.shuffle_data(X_train, y_train)
+        print("Learning rate {}".format(current_learning_rate))
+        if .9 * EPOCHS > epoch + 1 >= .5 * EPOCHS:
+            current_learning_rate -= (5e-2 - 1e-2) / (.4 * EPOCHS)  # Linear decay from 5e-2 to 1e-2 over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
 
-            X_batch = X_train[step: step + BATCH_SIZE]
-            y_batch = y_train[step: step + BATCH_SIZE]
+            X_batch = X_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
+            y_batch = y_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
 
-            sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch})
+            sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch, learning_rate: current_learning_rate})
 
             if step % DISPLAY_INTERVAL == 0:
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
+        # Storing validation data for plotting
+        X_train, y_train = utils.shuffle_data(X_train, y_train)
+        X_valid, y_valid = utils.shuffle_data(X_val, y_val)
+        v_loss, v_acc = sess.run([loss, accuracy], feed_dict={X_input: X_val[:1000], y_input: y_val[:1000]})
+        validation_loss.append(v_loss)
+        validation_acc.append(v_acc)
+
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
-        if (epoch % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
+        if (epoch + 1 % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print("Saved checkpoint for epoch {}".format(epoch))
 
@@ -139,3 +188,7 @@ if __name__ == "__main__":
 
     # Save SWA-weights
     vgg_network.save_weights(args.swa_save_path, "swa_weights", sess)
+
+    # Plot validation stats
+    plot_cost(validation_loss)
+    plot_acc(validation_acc)

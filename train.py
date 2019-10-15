@@ -12,6 +12,7 @@ import numpy as np
 import tensorflow as tf
 import os
 import matplotlib.pyplot as plt
+
 import utils
 from networks.vgg16.vgg16 import VGG16
 
@@ -144,7 +145,6 @@ if __name__ == "__main__":
     current_learning_rate = START_LEARNING_RATE
     for epoch in range(EPOCHS):
 
-
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(current_learning_rate))
         if .9 * EPOCHS > epoch + 1 >= .5 * EPOCHS:
@@ -169,6 +169,7 @@ if __name__ == "__main__":
         validation_acc.append(v_acc)
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
+
         if ((epoch+1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
             print("Saving checkpoint for epoch {}".format(epoch+1))
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
@@ -180,5 +181,7 @@ if __name__ == "__main__":
             os.makedirs(args.save_weight_path)
         vgg_network.save_weights(args.save_weight_path, "sgd_weights", sess)
         print("Weights were saved in {}".format(args.save_weight_path + "sgd_weights.npz"))
+
+    # Plot validation stats
     plot_cost(validation_loss)
     plot_acc(validation_acc)
