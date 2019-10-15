@@ -124,8 +124,8 @@ if __name__ == "__main__":
 
         for step in range(n_samples // BATCH_SIZE):
 
-            X_batch = X_train[step: step + BATCH_SIZE]
-            y_batch = y_train[step: step + BATCH_SIZE]
+            X_batch = X_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
+            y_batch = y_train[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
 
             sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch, learning_rate: current_learning_rate})
 
