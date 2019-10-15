@@ -24,7 +24,7 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-LEARNING_RATE = 5e-10
+START_LEARNING_RATE = 5e-10
 MOMENTUM = 0.9
 EPOCHS = 100
 BATCH_SIZE = 128
@@ -73,7 +73,8 @@ if __name__ == "__main__":
 
     # Define loss and optimizer
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
-    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    learning_rate = tf.placeholder(tf.float32, shape=[])
+    optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
     # optimizer = tf.compat.v1.train.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
@@ -111,21 +112,22 @@ if __name__ == "__main__":
         sess.run(tf.initialize_all_variables())
 
     # Run training
+    current_learning_rate = START_LEARNING_RATE
     for epoch in range(EPOCHS):
 
         X_train, y_train = utils.shuffle_data(X_train, y_train)
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
-        print("Learning rate {}".format(LEARNING_RATE))
-        if .9 * EPOCHS >= epoch+1 >= .5 * EPOCHS:
-            LEARNING_RATE -= (5e-10 - 1e-10) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
+        print("Learning rate {}".format(current_learning_rate))
+        if .9 * EPOCHS >= epoch + 1 >= .5 * EPOCHS:
+            current_learning_rate -= (5e-10 - 1e-10) / (.4 * EPOCHS)  # Linear decay from 5e-10 to 1e-10 over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
 
             X_batch = X_train[step: step + BATCH_SIZE]
             y_batch = y_train[step: step + BATCH_SIZE]
 
-            sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch})
+            sess.run(train_operation, feed_dict={X_input: X_batch, y_input: y_batch, learning_rate: current_learning_rate})
 
             if step % DISPLAY_INTERVAL == 0:
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
@@ -142,4 +144,3 @@ if __name__ == "__main__":
             os.makedirs(args.save_weight_path)
         vgg_network.save_weights(args.save_weight_path, "sgd_weights", sess)
         print("Weights were saved in {}".format(args.save_weight_path + "sgd_weights.npz"))
-
