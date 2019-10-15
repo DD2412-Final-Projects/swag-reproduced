@@ -181,7 +181,7 @@ if __name__ == "__main__":
     SWA_weights = [weights / (SWA_END_EPOCH - SWA_START_EPOCH) for weights in SWA_weights]
 
     # Save SWA-weights
-    vgg_network.save_weights(args.swa_save_path, "swa_weights", sess)
+    vgg_network.save_weights(args.save_weight_path, "swa_weights", sess)
 
     # Plot validation stats
     plot_cost(validation_loss)
