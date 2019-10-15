@@ -24,12 +24,13 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 5e-2
+START_LEARNING_RATE = 1e-2
+END_LEARNING_RATE = 5e-3
 MOMENTUM = 0.9
 EPOCHS = 20
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
-CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
+CHECKPOINT_INTERVAL = 1  # How often to save checkpoints (epochs)
 
 
 def parse_arguments():
@@ -147,7 +148,7 @@ if __name__ == "__main__":
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(current_learning_rate))
         if .9 * EPOCHS > epoch + 1 >= .5 * EPOCHS:
-            current_learning_rate -= (5e-2 - 1e-2) / (.4 * EPOCHS)  # Linear decay from 5e-2 to 1e-2 over 40% of epochs
+            current_learning_rate -= (START_LEARNING_RATE - END_LEARNING_RATE) / (.4 * EPOCHS)  # Linear decay from 5e-2 to 1e-2 over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
 
@@ -168,9 +169,10 @@ if __name__ == "__main__":
         validation_acc.append(v_acc)
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
-        if (epoch+1 % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
+        if ((epoch+1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
+            print("Saving checkpoint for epoch {}".format(epoch+1))
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
-            print("Saved checkpoint for epoch {}".format(epoch))
+            print('Saved.')
 
     # Save weights
     if args.save_weight_path is not None:
