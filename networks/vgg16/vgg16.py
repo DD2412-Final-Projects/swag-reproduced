@@ -41,7 +41,7 @@ class VGG16:
             images = self.imgs / 255
             mean = tf.constant([0.485, 0.456, 0.406], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
             stddev = tf.constant([0.229, 0.224, 0.225], dtype=tf.float32, shape=[1, 1, 1, 3], name="img_stddev")
-
+            images = tf.map_fn(lambda image: self.distort_image(image), images)
             images = (images - mean) / stddev
 
         # conv1_1
@@ -277,3 +277,17 @@ class VGG16:
         for i, k in enumerate(keys):
             weight_dict[k] = sess.run(self.parameters[i])
         np.savez(weight_path + weight_file_name, **weight_dict)
+
+    @staticmethod
+    def distort_image(image):
+
+        """
+        THe followings are done:
+        - zero-padded with 4 pixels on each side
+        - randomly crop the images to same size but distortet
+        - Randomly flip the 50% image horizontally.
+        """
+        image = tf.image.random_flip_left_right(image)
+        image = tf.image.resize_image_with_crop_or_pad(image, 32 + 4, 32 + 4)
+        image = tf.random_crop(image, size=[32, 32, 3])
+        return image

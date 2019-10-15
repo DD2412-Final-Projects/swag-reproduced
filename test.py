@@ -35,15 +35,12 @@ def parse_arguments():
                         help="Path to data that has been preprocessed using preprocess_data.py.")
     parser.add_argument("--load_weight_file", dest="load_weight_file", metavar="LOAD WEIGHT FILE", default=None,
                         help="File to load trained weights for the network from.")
-
-    parser.add_argument("--save_checkpoint_path", dest="save_checkpoint_path", metavar='SAVE CHECKPOINT PATH', default=None,
-                        help="Path to save checkpoints to.")
     parser.add_argument("--load_checkpoint_path", dest="load_checkpoint_path", metavar='LOAD CHECKPOINT PATH', default=None,
                         help="Path to load checkpoint from.")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
-    # assert args.load_weight_file is not None, "Weight file must be specified."
+    assert args.load_weight_file is not None or args.load_checkpoint_path is not None, "Weight file or checkpoint path must be specified."
 
     return args
 
@@ -63,8 +60,7 @@ if __name__ == "__main__":
     sess = tf.Session()
     X_input = tf.placeholder(tf.float32, [None, width, height, n_channels])
     y_input = tf.placeholder(tf.float32, [None, n_classes])
-    # vgg_network = VGG16(X_input, n_classes, weights=args.load_weight_file, sess=sess)
-    vgg_network = VGG16(X_input, n_classes, weights=None, sess=sess)
+    vgg_network = VGG16(X_input, n_classes, weights=args.load_weight_file, sess=sess)
     logits = vgg_network.fc3l  # Output of the final layer
 
     # Define evaluation metrics
@@ -74,30 +70,27 @@ if __name__ == "__main__":
     accuracy = tf.reduce_mean(tf.cast(predicted_correctly, tf.float32))
     loss_test, acc_test = [], []
 
-    # Create path for checkpoints
-    if args.save_checkpoint_path is not None:
-        checkpoint = tf.train.Saver()
-        save_dir = args.save_checkpoint_path
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-        save_path = os.path.join(save_dir, 'model')
+    if args.load_checkpoint_path is not None:
 
-    try:
-        print("Trying to restore last checkpoint ...")
+        try:
+            print("Trying to restore last checkpoint ...")
+            checkpoint = tf.train.Saver()
 
-        # Use TensorFlow to find the latest checkpoint - if any.
-        last_ckpt_path = tf.train.latest_checkpoint(checkpoint_dir=args.load_checkpoint_path)
-        print(last_ckpt_path)
-        # Try and load the data in the checkpoint.
-        checkpoint.restore(sess, save_path=last_ckpt_path)
+            # Use TensorFlow to find the latest checkpoint - if any.
+            last_ckpt_path = tf.train.latest_checkpoint(checkpoint_dir=args.load_checkpoint_path)
+            print(last_ckpt_path)
+            # Try and load the data in the checkpoint.
+            checkpoint.restore(sess, save_path=last_ckpt_path)
 
-        # If we get to this point, the checkpoint was successfully loaded.
-        print("Restored checkpoint from:", last_ckpt_path)
-    except:
-        # If the above failed for some reason, simply
-        # initialize all the variables for the TensorFlow graph.
-        print("Failed to restore checkpoint.")
+            # If we get to this point, the checkpoint was successfully loaded.
+            print("Restored checkpoint from:", last_ckpt_path)
+        except:
+            # If the above failed for some reason, simply
+            # initialize all the variables for the TensorFlow graph.
+            print("Failed to restore checkpoint.")
 
+
+    print("Computing test performance..")
     for step in range(n_samples // BATCH_SIZE):
 
         X_batch = X_test[step: step + BATCH_SIZE]
@@ -106,4 +99,5 @@ if __name__ == "__main__":
         loss_batch, acc_batch = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
         loss_test.append(loss_batch)
         acc_test.append(acc_batch)
+
     print('Loss: {} \nAccuracy: {}'.format(np.mean(loss_test), np.mean(acc_test)))
