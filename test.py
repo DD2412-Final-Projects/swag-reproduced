@@ -10,7 +10,7 @@ and tests using the SWAG test procedure.
 import argparse
 import numpy as np
 import tensorflow as tf
-import os
+import matplotlib.pyplot as plt
 
 import utils
 from networks.vgg16.vgg16 import VGG16
@@ -45,6 +45,46 @@ def parse_arguments():
     return args
 
 
+def reliability_diagram(y_pred, y_true, n=20):
+    """
+    Creates a reliability diagram with the method described in the SWAG paper.
+
+    1. y_pred is sorted based on confidence and split into n bins.
+    2. Mean confidence and mean accuracy is computed for each bin.
+    3. (mean confidence - mean accuracy) is plotted against the maximum confidence for each bin.
+    """
+
+    # Sort
+    y_pred_true = list(zip(list(y_pred), list(y_true)))
+    y_pred_true.sort(key=lambda arr_tuple: np.amax(arr_tuple[0]))
+    y_pred_sorted, y_true_sorted = list(zip(*y_pred_true))
+
+    # Split into bins
+    y_pred_binned = np.array_split(np.asarray(y_pred_sorted), n)  # list of arrays
+    y_true_binned = np.array_split(np.asarray(y_true_sorted), n)  # list of arrays
+
+    # Compute mean confidence, mean accuracy and max confidence for each bin
+    mean_confidence_per_bin = [np.mean(np.amax(y_preds, axis=1)) for y_preds in y_pred_binned]
+    mean_accuracy_per_bin = [np.mean(np.equal(np.argmax(y_p, axis=1), np.argmax(y_t, axis=1)))
+                             for y_p, y_t in zip(y_pred_binned, y_true_binned)]
+    max_confidence_per_bin = [np.amax(y_p) for y_p in y_pred_binned]
+    mean_conf_acc_diff_per_bin = [conf - acc for conf, acc in zip(mean_confidence_per_bin, mean_accuracy_per_bin)]
+
+    # Plot results
+    conf = np.arange(-0.2, 1.2, 1.4 / n)
+    ideal_diff = [0.0 for i in range(n)]
+    plt.figure()
+    plt.plot(conf, ideal_diff, "--")
+    plt.plot(max_confidence_per_bin, mean_conf_acc_diff_per_bin, "-o")
+    plt.legend(labels=["Ideal", "Result"])
+    plt.title("Reliability diagram")
+    plt.xlabel("Confidence (max in bin)")
+    plt.ylabel("Confidence - Accuracy (mean in bin)")
+    plt.xlim(0.0, 1.0)
+    plt.grid()
+    plt.show()
+
+
 if __name__ == "__main__":
 
     # Parse input arguments
@@ -69,6 +109,7 @@ if __name__ == "__main__":
     predicted_correctly = tf.equal(tf.argmax(predictions, 1), tf.argmax(y_input, 1))
     accuracy = tf.reduce_mean(tf.cast(predicted_correctly, tf.float32))
     loss_test, acc_test = [], []
+    y_pred = np.empty((0, n_classes))
 
     if args.load_checkpoint_path is not None:
 
@@ -90,13 +131,17 @@ if __name__ == "__main__":
             print("Failed to restore checkpoint.")
 
     print("Computing test performance..")
-    for step in range(n_samples // BATCH_SIZE):
+    for step in range(int(np.ceil(n_samples / BATCH_SIZE))):
 
-        X_batch = X_test[step: step + BATCH_SIZE]
-        y_batch = y_test[step: step + BATCH_SIZE]
+        X_batch = X_test[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
+        y_batch = y_test[step * BATCH_SIZE: (step + 1) * BATCH_SIZE]
 
-        loss_batch, acc_batch = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
+        loss_batch, acc_batch, preds = sess.run([loss, accuracy, predictions], feed_dict={X_input: X_batch, y_input: y_batch})
         loss_test.append(loss_batch)
         acc_test.append(acc_batch)
+        y_pred = np.vstack((y_pred, preds))
 
+    # Display results
+    print("\n---- Test Results ----")
     print('Loss: {} \nAccuracy: {}'.format(np.mean(loss_test), np.mean(acc_test)))
+    reliability_diagram(y_pred=y_pred, y_true=y_test)
