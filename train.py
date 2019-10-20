@@ -56,6 +56,11 @@ def parse_arguments():
 
 
 def plot_cost(c_v):
+    """
+    Creates a plot of validation cost c_v
+    and displays it.
+    """
+
     plt.figure()
     plt.plot(c_v, label='Validation cost')
     plt.legend()
@@ -67,6 +72,11 @@ def plot_cost(c_v):
 
 
 def plot_acc(acc_v):
+    """
+    Creates a plot of validation cost c_v
+    and displays it.
+    """
+
     plt.figure()
     plt.plot(acc_v, label='Validation acc')
     plt.legend()
@@ -169,9 +179,8 @@ if __name__ == "__main__":
         validation_acc.append(v_acc)
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
-
-        if ((epoch+1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
-            print("Saving checkpoint for epoch {}".format(epoch+1))
+        if ((epoch + 1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
+            print("Saving checkpoint for epoch {}".format(epoch + 1))
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print('Saved.')
 

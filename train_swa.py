@@ -56,6 +56,11 @@ def parse_arguments():
 
 
 def plot_cost(c_v):
+    """
+    Creates a plot of validation cost c_v
+    and displays it.
+    """
+
     plt.figure()
     plt.plot(c_v, label='Validation cost')
     plt.legend()
@@ -67,6 +72,11 @@ def plot_cost(c_v):
 
 
 def plot_acc(acc_v):
+    """
+    Creates a plot of validation cost c_v
+    and displays it.
+    """
+
     plt.figure()
     plt.plot(acc_v, label='Validation acc')
     plt.legend()

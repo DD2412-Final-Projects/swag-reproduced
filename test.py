@@ -89,7 +89,6 @@ if __name__ == "__main__":
             # initialize all the variables for the TensorFlow graph.
             print("Failed to restore checkpoint.")
 
-
     print("Computing test performance..")
     for step in range(n_samples // BATCH_SIZE):
 
