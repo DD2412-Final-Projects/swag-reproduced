@@ -13,7 +13,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 import utils
-from networks.vgg16.vgg16 import VGG16
+from networks.vgg16 import VGG16
 
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
