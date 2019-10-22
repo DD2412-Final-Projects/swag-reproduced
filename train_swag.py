@@ -26,12 +26,12 @@ session = InteractiveSession(config=config)
 # Hyperparameters
 LEARNING_RATE = 1e-2
 MOMENTUM = 0.9
-EPOCHS = 20
+EPOCHS = 1
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
-SWA_START_EPOCH = 0
-SWA_END_EPOCH = 5
+MOMENT_UPDATE_FREQ = 1
+K = 3  # maximum number of columns in deviation matrix D
 
 
 def parse_arguments():
@@ -150,7 +150,13 @@ if __name__ == "__main__":
     # initialization for plots
     validation_loss, validation_acc = [], []
 
-    # Run training with SWA
+    # Initialization of SWAG-parameters
+    first_moment = vgg_network.get_weights_flat(sess)
+    second_moment = first_moment ** 2
+    D = np.empty((first_moment.shape[0], 0))  # deviation matrix
+    global_step = 0  # total number of iterations (across different epochs)
+
+    # Run training with SWAG
     for epoch in range(EPOCHS):
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
@@ -165,6 +171,21 @@ if __name__ == "__main__":
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
+            # Perform SWAG-update
+            if step % MOMENT_UPDATE_FREQ == 0:
+                n = global_step // MOMENT_UPDATE_FREQ
+                new_weights = vgg_network.get_weights_flat(sess)
+
+                first_moment = (n * first_moment + new_weights) / (n + 1)
+                second_moment = (n * second_moment + new_weights ** 2) / (n + 1)
+
+                if D.shape[1] == K:
+                    D = np.delete(D, 0, 1)  # remove first column
+                new_D_col = second_moment - first_moment ** 2
+                D = np.append(D, new_D_col.reshape(new_D_col.shape[0], 1), axis=1)
+
+            global_step += 1
+
         # Storing validation data for plotting
         X_train, y_train = utils.shuffle_data(X_train, y_train)
         X_valid, y_valid = utils.shuffle_data(X_val, y_val)
@@ -177,21 +198,12 @@ if __name__ == "__main__":
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print("Saved checkpoint for epoch {}".format(epoch))
 
-        # Add to SWA-average
-        if epoch in range(SWA_START_EPOCH, SWA_END_EPOCH):
+    # Compute SWAG-parameters
+    theta_SWA = first_moment
+    sigma_SWAG = 0.5 * np.diag(second_moment - first_moment ** 2) + np.matmul(D, D.T) / (2 * (K - 1))
 
-            list_of_current_weights = [sess.run(weights) for weights in vgg_network.parameters]
-
-            if epoch == SWA_START_EPOCH:  # first SWA-epoch
-                SWA_weights = list_of_current_weights
-            else:
-                SWA_weights = [sum(weights) for weights in zip(SWA_weights, list_of_current_weights)]
-
-    # Compute final SWA-weights
-    SWA_weights = [weights / (SWA_END_EPOCH - SWA_START_EPOCH) for weights in SWA_weights]
-
-    # Save SWA-weights
-    vgg_network.save_weights(args.save_weight_path, "swa_weights", sess)
+    # Save SWAG-parameters
+    # TODO
 
     # Plot validation stats
     plot_cost(validation_loss)

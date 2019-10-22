@@ -323,14 +323,14 @@ class VGG16:
         Weights are ordered alphabetically after their key (e.g. conv1_1_W) and
         flattened in row major order.
         """
-        weight_dict = self.get_weights()
+        weight_dict = self.get_weights(sess)
         keys = sorted(weight_dict.keys())
         weight_vector = []
 
         for key in keys:
             weight_vector.append(weight_dict[key].flatten())
 
-        return np.array(weight_vector)
+        return np.concatenate(weight_vector)
 
     def unflatten_weights(self, weight_vector):
         """
