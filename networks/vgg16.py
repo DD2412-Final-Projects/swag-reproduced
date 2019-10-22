@@ -28,7 +28,7 @@ class VGG16:
         self.fc_layers()
         self.probs = tf.nn.softmax(self.fc3l)
         if weights is not None and sess is not None:
-            self.load_weights(weights, sess)
+            self.load_weights_from_file(weights, sess)
 
         conv_out_shape = int(np.prod(self.pool5.get_shape()[1:]))
 
@@ -278,26 +278,78 @@ class VGG16:
             self.parameters += [fc3w, fc3b]
             self.weight_keys += ["fc3_W", "fc3_b"]
 
-    def load_weights(self, weight_file, sess):
+    def load_weights_from_file(self, weight_file, sess):
         """
         Initializes the weights of the network to the values in weight_file.
         """
-        weights = np.load(weight_file)
-        keys = sorted(weights.keys())
+        weight_dict = np.load(weight_file)
+        self.load_weights(weight_dict, sess)
+
+    def load_weights(self, weight_dict, sess):
+        """
+        Initializes the weights of the network to the values in weight_dict.
+        (weight_dict needs to be a dictionary structured as what is returned by
+        self.get_weights).
+        """
+        keys = sorted(weight_dict.keys())
         for i, k in enumerate(keys):
-            sess.run(self.parameters[i].assign(weights[k]))
+            sess.run(self.parameters[i].assign(weight_dict[k]))
 
     def save_weights(self, weight_path, weight_file_name, sess):
         """
         Saves the current weights of the network to a file with the name
         weight_file_name in weight_path.
         """
+        weight_dict = self.get_weights(sess)
+        np.savez(weight_path + weight_file_name, **weight_dict)
 
+    def get_weights(self, sess):
+        """
+        Returns the current values of all weights in the network
+        in a dictionary with the same keys as self.weight_keys.
+        """
         keys = sorted(self.weight_keys)
         weight_dict = {}
         for i, k in enumerate(keys):
             weight_dict[k] = sess.run(self.parameters[i])
-        np.savez(weight_path + weight_file_name, **weight_dict)
+
+        return weight_dict
+
+    def get_weights_flat(self, sess):
+        """
+        Returns the current values of all weights in the network
+        in a single flattened vector.
+
+        Weights are ordered alphabetically after their key (e.g. conv1_1_W) and
+        flattened in row major order.
+        """
+        weight_dict = self.get_weights()
+        keys = sorted(weight_dict.keys())
+        weight_vector = []
+
+        for key in keys:
+            weight_vector.append(weight_dict[key].flatten())
+
+        return np.array(weight_vector)
+
+    def unflatten_weights(self, weight_vector):
+        """
+        Takes a vector of weights (structured as the return value of self.get_weights_flat)
+        and "unflattens" them into a weight_dict (like the one returned by get_weights).
+        """
+        keys = sorted(self.VGG16_VAR_DIMS.keys())
+        weight_dict = {}
+        slice_index = 0
+
+        for key in keys:
+            dims = self.VGG16_VAR_DIMS[key]
+            size = np.prod(dims)
+            values = weight_vector[slice_index: slice_index + size]
+            slice_index += size
+
+            weight_dict[key] = values.reshape(dims)
+
+        return weight_dict
 
     @staticmethod
     def distort_image(image):
