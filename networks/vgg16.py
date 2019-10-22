@@ -30,6 +30,27 @@ class VGG16:
         if weights is not None and sess is not None:
             self.load_weights(weights, sess)
 
+        conv_out_shape = int(np.prod(self.pool5.get_shape()[1:]))
+
+        self.VGG16_VAR_DIMS = {
+            "conv1_1_W": (3, 3, 3, 64), "conv1_1_b": (64),
+            "conv1_2_W": (3, 3, 64, 64), "conv1_2_b": (64),
+            "conv2_1_W": (3, 3, 64, 128), "conv2_1_b": (128),
+            "conv2_2_W": (3, 3, 128, 128), "conv2_2_b": (128),
+            "conv3_1_W": (3, 3, 128, 256), "conv3_1_b": (256),
+            "conv3_2_W": (3, 3, 256, 256), "conv3_2_b": (256),
+            "conv3_3_W": (3, 3, 256, 256), "conv3_3_b": (256),
+            "conv4_1_W": (3, 3, 256, 512), "conv4_1_b": (512),
+            "conv4_2_W": (3, 3, 256, 512), "conv4_2_b": (512),
+            "conv4_3_W": (3, 3, 512, 512), "conv4_3_b": (512),
+            "conv5_1_W": (3, 3, 512, 512), "conv5_1_b": (512),
+            "conv5_2_W": (3, 3, 512, 512), "conv5_2_b": (512),
+            "conv5_3_W": (3, 3, 512, 512), "conv5_3_b": (512),
+            "fc1_W": (conv_out_shape, 512), "fc1_b": (512),
+            "fc2_W": (512, 512), "fc2_b": (512),
+            "fc3_W": (512, self.n_classes), "fc3_b": (self.n_classes)
+        }
+
     def convlayers(self):
         """
         Adds the convolution layers to the network.
