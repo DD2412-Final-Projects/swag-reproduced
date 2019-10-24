@@ -127,11 +127,11 @@ if __name__ == "__main__":
         if args.swag_type == "full":
             z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
             z2 = np.random.normal(0, 1, (param_dict["K_SWAG"],))  # z2 ~ N(0, I_K)
-            weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(param_dict["sigma_SWAG"], z1) + \
+            weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(np.sqrt(param_dict["sigma_SWAG"]), z1) + \
                 (1 / np.sqrt(2 * (param_dict["K_SWAG"] - 1))) * np.dot(param_dict["D_SWAG"], z2)
         elif args.swag_type == "diag":
             z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
-            weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(param_dict["sigma_SWAG"], z1)
+            weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(np.sqrt(param_dict["sigma_SWAG"]), z1)
 
         # Load the weight sample into the network
         weight_dict = vgg_network.unflatten_weights(weight_sample)
