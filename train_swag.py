@@ -87,6 +87,14 @@ def plot_acc(acc_v):
     plt.show()
 
 
+def save_swag_weights(save_path, weight_dict):
+    """
+    Saves the SWAG-parameters in weight_dict to save_path
+    in a compressed .npz file with the name swag_weights.npz
+    """
+    np.savez(save_path + "swag_weights.npz", **weight_dict)
+
+
 if __name__ == "__main__":
 
     # Parse input arguments
@@ -199,11 +207,13 @@ if __name__ == "__main__":
             print("Saved checkpoint for epoch {}".format(epoch))
 
     # Compute SWAG-parameters
-    theta_SWA = first_moment
-    sigma_SWAG = 0.5 * np.diag(second_moment - first_moment ** 2) + np.matmul(D, D.T) / (2 * (K - 1))
+    weight_dict = {}
+    weight_dict["theta_SWA"] = first_moment
+    weight_dict["sigma_SWAG"] = second_moment - first_moment ** 2  # NOTE: stored as vector for efficiency
+    weight_dict["D_SWAG"] = D
 
     # Save SWAG-parameters
-    # TODO
+    save_swag_weights(args.save_weight_path, weight_dict)
 
     # Plot validation stats
     plot_cost(validation_loss)
