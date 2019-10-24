@@ -12,6 +12,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, log_loss
+from tqdm import tqdm
 
 import utils
 from networks.vgg16 import VGG16
@@ -24,7 +25,7 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 BATCH_SIZE = 128
-S = 10  # number of samples to take from the SWAG-distribution
+S = 30  # number of samples to take from the SWAG-distribution
 
 
 def parse_arguments():
@@ -117,7 +118,7 @@ if __name__ == "__main__":
     # and keep a sum of predictions across sampled weights
     y_pred_sum = np.zeros((n_samples, n_classes))
     print("Computing test performance..")
-    for s in range(S):
+    for s in tqdm(range(S)):
 
         # Sample weights
         z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
