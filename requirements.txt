@@ -3,3 +3,4 @@ tensorflow-gpu==1.14.0
 scipy==1.1.0
 Pillow
 matplotlib
+scikit-learn==0.21.3

@@ -31,7 +31,7 @@ BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 MOMENT_UPDATE_FREQ = 1
-K = 3  # maximum number of columns in deviation matrix D
+K_SWAG = 3  # maximum number of columns in deviation matrix D
 
 
 def parse_arguments():
@@ -42,8 +42,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", dest="data_path", metavar="PATH TO DATA", default=None,
                         help="Path to data that has been preprocessed using preprocess_data.py.")
-    parser.add_argument("--save_weight_path", dest="save_weight_path", metavar="SAVE WEIGTH PATH", default=None,
-                        help="Path to save trained weights for the network to.")
+    parser.add_argument("--save_param_path", dest="save_param_path", metavar="SAVE PARAMETER PATH", default=None,
+                        help="Path to save trained SWAG parameters for the network to.")
     parser.add_argument("--save_checkpoint_path", dest="save_checkpoint_path", metavar="SAVE CHECKPOINT PATH", default=None,
                         help="Path to save checkpoints to")
     parser.add_argument("--load_checkpoint_path", dest="load_checkpoint_path", metavar='LOAD CHECKPOINT PATH', default=None,
@@ -87,12 +87,12 @@ def plot_acc(acc_v):
     plt.show()
 
 
-def save_swag_weights(save_path, weight_dict):
+def save_swag_params(save_path, param_dict):
     """
-    Saves the SWAG-parameters in weight_dict to save_path
-    in a compressed .npz file with the name swag_weights.npz
+    Saves the SWAG parameters in param_dict to save_path
+    in a compressed .npz file with the name swag_params.npz
     """
-    np.savez(save_path + "swag_weights.npz", **weight_dict)
+    np.savez(save_path + "swag_params.npz", **param_dict)
 
 
 if __name__ == "__main__":
@@ -187,7 +187,7 @@ if __name__ == "__main__":
                 first_moment = (n * first_moment + new_weights) / (n + 1)
                 second_moment = (n * second_moment + new_weights ** 2) / (n + 1)
 
-                if D.shape[1] == K:
+                if D.shape[1] == K_SWAG:
                     D = np.delete(D, 0, 1)  # remove first column
                 new_D_col = second_moment - first_moment ** 2
                 D = np.append(D, new_D_col.reshape(new_D_col.shape[0], 1), axis=1)
@@ -206,14 +206,15 @@ if __name__ == "__main__":
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
             print("Saved checkpoint for epoch {}".format(epoch))
 
-    # Compute SWAG-parameters
-    weight_dict = {}
-    weight_dict["theta_SWA"] = first_moment
-    weight_dict["sigma_SWAG"] = second_moment - first_moment ** 2  # NOTE: stored as vector for efficiency
-    weight_dict["D_SWAG"] = D
+    # Compute SWAG parameters
+    param_dict = {}
+    param_dict["theta_SWA"] = first_moment
+    param_dict["sigma_SWAG"] = second_moment - first_moment ** 2  # NOTE: stored as vector for efficiency
+    param_dict["D_SWAG"] = D
+    param_dict["K_SWAG"] = K_SWAG
 
     # Save SWAG-parameters
-    save_swag_weights(args.save_weight_path, weight_dict)
+    save_swag_params(args.save_param_path, param_dict)
 
     # Plot validation stats
     plot_cost(validation_loss)
