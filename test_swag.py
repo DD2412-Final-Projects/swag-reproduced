@@ -38,10 +38,13 @@ def parse_arguments():
                         help="Path to data that has been preprocessed using preprocess_data.py.")
     parser.add_argument("--load_param_file", dest="load_param_file", metavar="LOAD PARAMETER FILE", default=None,
                         help="File to load trained SWAG parameters for the network from.")
+    parser.add_argument("--swag_type", dest="swag_type", metavar="SWAG_TYPE", default="full",
+                        help="Choose between 'full' or 'diag'. Determines whether regular SWAG or SWAG-Diag is used. Defaults to regular SWAG.")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
     assert args.load_param_file is not None, "SWAG parameter file must be specified."
+    assert args.swag_type in ["diag", "full"], "SWAG type argument must be either 'full' or 'diag'"
 
     return args
 
@@ -121,10 +124,14 @@ if __name__ == "__main__":
     for s in tqdm(range(S)):
 
         # Sample weights
-        z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
-        z2 = np.random.normal(0, 1, (param_dict["K_SWAG"],))  # z2 ~ N(0, I_K)
-        weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(param_dict["sigma_SWAG"], z1) + \
-            (1 / np.sqrt(2 * (param_dict["K_SWAG"] - 1))) * np.dot(param_dict["D_SWAG"], z2)
+        if args.swag_type == "full":
+            z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
+            z2 = np.random.normal(0, 1, (param_dict["K_SWAG"],))  # z2 ~ N(0, I_K)
+            weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(param_dict["sigma_SWAG"], z1) + \
+                (1 / np.sqrt(2 * (param_dict["K_SWAG"] - 1))) * np.dot(param_dict["D_SWAG"], z2)
+        elif args.swag_type == "diag":
+            z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
+            weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(param_dict["sigma_SWAG"], z1)
 
         # Load the weight sample into the network
         weight_dict = vgg_network.unflatten_weights(weight_sample)

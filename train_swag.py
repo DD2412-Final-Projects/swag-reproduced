@@ -26,12 +26,12 @@ session = InteractiveSession(config=config)
 # Hyperparameters
 LEARNING_RATE = 1e-2
 MOMENTUM = 0.9
-EPOCHS = 1
+EPOCHS = 40
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
-MOMENT_UPDATE_FREQ = 1
-K_SWAG = 3  # maximum number of columns in deviation matrix D
+SWAG_START_EPOCH = 10  # after how many epochs of training to start collecting samples for SWAG
+K_SWAG = 20  # maximum number of columns in deviation matrix D
 
 
 def parse_arguments():
@@ -165,6 +165,7 @@ if __name__ == "__main__":
     global_step = 0  # total number of iterations (across different epochs)
 
     # Run training with SWAG
+    n_SWAG = 1  # number of SWAG samples
     for epoch in range(EPOCHS):
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
@@ -180,19 +181,18 @@ if __name__ == "__main__":
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
             # Perform SWAG-update
-            if step % MOMENT_UPDATE_FREQ == 0:
-                n = global_step // MOMENT_UPDATE_FREQ
+            if step == 0 and epoch > SWAG_START_EPOCH:
                 new_weights = vgg_network.get_weights_flat(sess)
 
-                first_moment = (n * first_moment + new_weights) / (n + 1)
-                second_moment = (n * second_moment + new_weights ** 2) / (n + 1)
+                first_moment = (n_SWAG * first_moment + new_weights) / (n_SWAG + 1)
+                second_moment = (n_SWAG * second_moment + new_weights ** 2) / (n_SWAG + 1)
 
                 if D.shape[1] == K_SWAG:
                     D = np.delete(D, 0, 1)  # remove first column
                 new_D_col = second_moment - first_moment ** 2
                 D = np.append(D, new_D_col.reshape(new_D_col.shape[0], 1), axis=1)
 
-            global_step += 1
+                n_SWAG += 1
 
         # Storing validation data for plotting
         X_train, y_train = utils.shuffle_data(X_train, y_train)
