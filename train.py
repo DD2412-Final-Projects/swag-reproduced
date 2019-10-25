@@ -25,10 +25,10 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 1e-2
-END_LEARNING_RATE = 5e-3
+START_LEARNING_RATE = 5e-2
+END_LEARNING_RATE = 0.01*START_LEARNING_RATE
 MOMENTUM = 0.9
-EPOCHS = 20
+EPOCHS = 300
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
@@ -158,7 +158,7 @@ if __name__ == "__main__":
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(current_learning_rate))
         if .9 * EPOCHS > epoch + 1 >= .5 * EPOCHS:
-            current_learning_rate -= (START_LEARNING_RATE - END_LEARNING_RATE) / (.4 * EPOCHS)  # Linear decay from 5e-2 to 1e-2 over 40% of epochs
+            current_learning_rate -= (START_LEARNING_RATE - END_LEARNING_RATE) / (.4 * EPOCHS)  # Linear decay over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
 
