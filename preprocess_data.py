@@ -152,7 +152,7 @@ def read_STL_10(stl_path, train=True):
         """
         with open(path_to_labels, 'rb') as f:
             labels = np.fromfile(f, dtype=np.uint8)
-            return labels
+            return utils.index_to_one_hot(labels - 1, 10)  # convert index labels [1, 10] to one-hot
 
     def read_all_images(path_to_data):
         """
