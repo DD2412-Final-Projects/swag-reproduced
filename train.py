@@ -28,6 +28,7 @@ tf.set_random_seed(12)
 START_LEARNING_RATE = 5e-2
 END_LEARNING_RATE = 0.01*START_LEARNING_RATE
 MOMENTUM = 0.9
+WEIGHT_DECAY = 5e-4
 EPOCHS = 300
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
@@ -112,7 +113,8 @@ if __name__ == "__main__":
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
     learning_rate = tf.placeholder(tf.float32, shape=[])
     # optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
-    optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(learning_rate, MOMENTUM)
+    # optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(learning_rate, MOMENTUM)
+    optimizer = tf.contrib.opt.MomentumWOptimizer(learning_rate=learning_rate, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
