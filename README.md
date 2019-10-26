@@ -1,6 +1,7 @@
 # Reproducability Project - "A Simple Baseline for Bayesian Uncertainty in Deep Learning"
 
-Paper: https://arxiv.org/pdf/1902.02476.pdf
+SWAG Paper: https://arxiv.org/pdf/1902.02476.pdf   
+SWA Paper: https://arxiv.org/pdf/1803.05407.pdf
 
 ## Resources used in the implementation
 * TensorFlow implementation of VGG-16: https://www.cs.toronto.edu/~frossard/post/vgg16/.   
