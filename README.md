@@ -8,7 +8,8 @@ SWA Paper: https://arxiv.org/pdf/1803.05407.pdf
 Pre-trained weights: https://www.cs.toronto.edu/~frossard/vgg16/vgg16_weights.npz
 
 ## Datasets used
-* CIFAR-10/100: https://www.cs.toronto.edu/~kriz/cifar.html
+* CIFAR-10/100: https://www.cs.toronto.edu/~kriz/cifar.html   
+* STL-10: http://ai.stanford.edu/~acoates/stl10/
 
 ## Suggested file structure
 
