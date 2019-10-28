@@ -24,15 +24,15 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 # Hyperparameters
-tf.set_random_seed(12)
+# tf.set_random_seed(12)
 START_LEARNING_RATE = 5e-2
 END_LEARNING_RATE = .01 * START_LEARNING_RATE
 MOMENTUM = 0
-WEIGHT_DECAY = 5e-4
+WEIGHT_DECAY = 0
 EPOCHS = 300
 BATCH_SIZE = 128
-DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training (steps)
-CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
+DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
+CHECKPOINT_INTERVAL = 50  # How often to save checkpoints (epochs)
 
 
 def parse_arguments():
@@ -47,6 +47,8 @@ def parse_arguments():
                         help="Path to save trained weights for the network to.")
     parser.add_argument("--save_checkpoint_path", dest="save_checkpoint_path", metavar='SAVE CHECKPOINT PATH', default=None,
                         help="Path to save checkpoints to.")
+    parser.add_argument("--swag_start_checkpoint_path", dest="swag_start_checkpoint_path", metavar="SWAG START CHECKPOINT PATH", default=None,
+                        help="Path in which to save checkpoint to start SWAG from.")
     parser.add_argument("--load_checkpoint_path", dest="load_checkpoint_path", metavar='LOAD CHECKPOINT PATH', default=None,
                         help="Path to load checkpoint from.")
     parser.add_argument("--save_plots_path", dest="save_plots_path", metavar="SAVE PLOTS PATH", default=None,
@@ -193,6 +195,15 @@ if __name__ == "__main__":
         if ((epoch + 1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
             print("Saving checkpoint for epoch {}".format(epoch + 1))
             checkpoint.save(sess, save_path=save_path, global_step=epoch)
+            print('Saved.')
+
+        # Save special checkpoint to start SWAG from
+        if (epoch + 1) == 160 and args.swag_start_checkpoint_path is not None:
+            if not os.path.exists(args.swag_start_checkpoint_path):
+                os.makedirs(args.swag_start_checkpoint_path)
+            swag_check_save_path = os.path.join(args.swag_start_checkpoint_path, 'swag_start')
+            print("Saving SWAG start checkpoint.")
+            checkpoint.save(sess, save_path=swag_check_save_path, global_step=epoch)
             print('Saved.')
 
     # Save weights
