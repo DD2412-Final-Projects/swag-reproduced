@@ -29,7 +29,7 @@ START_LEARNING_RATE = 5e-2
 END_LEARNING_RATE = .01 * START_LEARNING_RATE
 MOMENTUM = 0
 WEIGHT_DECAY = 5e-4
-EPOCHS = 2
+EPOCHS = 300
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         X_train, y_train = utils.shuffle_data(X_train, y_train)
         X_valid, y_valid = utils.shuffle_data(X_val, y_val)
         v_loss, v_acc = sess.run([loss, accuracy], feed_dict={X_input: X_val[:1000], y_input: y_val[:1000]})
-        # tr_loss, tr_acc = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
+        tr_loss, tr_acc = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
         validation_loss.append(v_loss)
         validation_acc.append(v_acc)
         training_loss.append(tr_loss)
@@ -206,3 +206,6 @@ if __name__ == "__main__":
     if args.save_plots_path is not None:
         plot_cost(validation_loss, training_loss, args.save_plots_path)
         plot_acc(validation_acc, training_acc, args.save_plots_path)
+    else:
+        plot_cost(validation_loss, training_loss)
+        plot_acc(validation_acc, training_acc)
