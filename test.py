@@ -84,7 +84,7 @@ def reliability_diagram(y_pred, y_true, n_sample, n=20):
     plt.title("Reliability diagram")
     plt.xlabel("Confidence (max in bin)")
     plt.ylabel("Confidence - Accuracy (mean in bin)")
-    plt.xlim(0.0, 1.0)
+    plt.xscale('logit')
     plt.grid()
     plt.show()
 
