@@ -23,6 +23,7 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 BATCH_SIZE = 128
+tf.set_random_seed(12)
 
 
 def parse_arguments():
@@ -45,7 +46,7 @@ def parse_arguments():
     return args
 
 
-def reliability_diagram(y_pred, y_true, n=20):
+def reliability_diagram(y_pred, y_true, n_sample, n=20):
     """
     Creates a reliability diagram with the method described in the SWAG paper.
 
@@ -62,6 +63,7 @@ def reliability_diagram(y_pred, y_true, n=20):
     # Split into bins
     y_pred_binned = np.array_split(np.asarray(y_pred_sorted), n)  # list of arrays
     y_true_binned = np.array_split(np.asarray(y_true_sorted), n)  # list of arrays
+    bin_weight = [_.shape[0]/n_sample for _ in y_true_binned]
 
     # Compute mean confidence, mean accuracy and max confidence for each bin
     mean_confidence_per_bin = [np.mean(np.amax(y_preds, axis=1)) for y_preds in y_pred_binned]
@@ -69,6 +71,8 @@ def reliability_diagram(y_pred, y_true, n=20):
                              for y_p, y_t in zip(y_pred_binned, y_true_binned)]
     max_confidence_per_bin = [np.amax(y_p) for y_p in y_pred_binned]
     mean_conf_acc_diff_per_bin = [conf - acc for conf, acc in zip(mean_confidence_per_bin, mean_accuracy_per_bin)]
+
+    ece = sum([a*b for a, b in zip(bin_weight, mean_conf_acc_diff_per_bin)])
 
     # Plot results
     conf = np.arange(-0.2, 1.2, 1.4 / n)
@@ -83,6 +87,8 @@ def reliability_diagram(y_pred, y_true, n=20):
     plt.xlim(0.0, 1.0)
     plt.grid()
     plt.show()
+
+    return ece
 
 
 if __name__ == "__main__":
@@ -144,4 +150,5 @@ if __name__ == "__main__":
     # Display results
     print("\n---- Test Results ----")
     print('Loss: {} \nAccuracy: {}'.format(np.mean(loss_test), np.mean(acc_test)))
-    reliability_diagram(y_pred=y_pred, y_true=y_test)
+    ece = reliability_diagram(y_pred, y_test, n_samples)
+    print('ECE:', ece)
