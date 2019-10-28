@@ -29,9 +29,9 @@ START_LEARNING_RATE = 5e-2
 END_LEARNING_RATE = .01 * START_LEARNING_RATE
 MOMENTUM = 0
 WEIGHT_DECAY = 5e-4
-EPOCHS = 2
+EPOCHS = 100
 BATCH_SIZE = 128
-DISPLAY_INTERVAL = 1  # How often to display loss/accuracy during training (steps)
+DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 
 
@@ -49,34 +49,30 @@ def parse_arguments():
                         help="Path to save checkpoints to.")
     parser.add_argument("--load_checkpoint_path", dest="load_checkpoint_path", metavar='LOAD CHECKPOINT PATH', default=None,
                         help="Path to load checkpoint from.")
-    parser.add_argument("--save_plots_path", dest="save_plots_path", metavar="SAVE PLOTS PATH", default=None,
-                        help="Path to save plots to.")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
-    assert args.save_plots_path is None or args.save_plots_path[-1] == "/", "Please put / at the end of plot path."
 
     return args
 
 
-def plot_cost(c_v, c_t, save_plots_path):
+def plot_cost(c_v):
     """
     Creates a plot of validation cost c_v
     and displays it.
     """
 
     plt.figure()
-    plt.plot(c_v, label='Validation loss')
-    plt.plot(c_t, label='Training loss')
+    plt.plot(c_v, label='Validation cost')
     plt.legend()
-    title = 'Loss per epoch'
+    title = 'Costs per epoch'
     plt.title(title)
     plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.savefig(save_plots_path + "sgd_loss_plot.png")
+    plt.ylabel("Cost")
+    plt.show()
 
 
-def plot_acc(acc_v, acc_t, save_plots_path):
+def plot_acc(acc_v):
     """
     Creates a plot of validation cost c_v
     and displays it.
@@ -84,13 +80,12 @@ def plot_acc(acc_v, acc_t, save_plots_path):
 
     plt.figure()
     plt.plot(acc_v, label='Validation acc')
-    plt.plot(acc_t, label='Training acc')
     plt.legend()
     title = 'Accuracy per epoch'
     plt.title(title)
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    plt.savefig(save_plots_path + "sgd_accuracy_plot.png")
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -157,7 +152,6 @@ if __name__ == "__main__":
 
     # initialization for plots
     validation_loss, validation_acc = [], []
-    training_loss, training_acc = [], []
 
     # Run training
     current_learning_rate = START_LEARNING_RATE
@@ -183,11 +177,8 @@ if __name__ == "__main__":
         X_train, y_train = utils.shuffle_data(X_train, y_train)
         X_valid, y_valid = utils.shuffle_data(X_val, y_val)
         v_loss, v_acc = sess.run([loss, accuracy], feed_dict={X_input: X_val[:1000], y_input: y_val[:1000]})
-        # tr_loss, tr_acc = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
         validation_loss.append(v_loss)
         validation_acc.append(v_acc)
-        training_loss.append(tr_loss)
-        training_acc.append(tr_acc)
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
         if ((epoch + 1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
@@ -203,6 +194,5 @@ if __name__ == "__main__":
         print("Weights were saved in {}".format(args.save_weight_path + "sgd_weights.npz"))
 
     # Plot validation stats
-    if args.save_plots_path is not None:
-        plot_cost(validation_loss, training_loss, args.save_plots_path)
-        plot_acc(validation_acc, training_acc, args.save_plots_path)
+    plot_cost(validation_loss)
+    plot_acc(validation_acc)
