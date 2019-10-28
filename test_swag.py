@@ -10,6 +10,7 @@ and tests using the SWAG test procedure.
 import argparse
 import numpy as np
 import tensorflow as tf
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, log_loss
 from tqdm import tqdm
@@ -49,7 +50,7 @@ def parse_arguments():
     return args
 
 
-def reliability_diagram(y_pred, y_true, n=20):
+def reliability_diagram(y_pred, y_true, n_sample, n=20):
     """
     Creates a reliability diagram with the method described in the SWAG paper.
 
@@ -66,6 +67,7 @@ def reliability_diagram(y_pred, y_true, n=20):
     # Split into bins
     y_pred_binned = np.array_split(np.asarray(y_pred_sorted), n)  # list of arrays
     y_true_binned = np.array_split(np.asarray(y_true_sorted), n)  # list of arrays
+    bin_weight = [_.shape[0] / n_sample for _ in y_true_binned]
 
     # Compute mean confidence, mean accuracy and max confidence for each bin
     mean_confidence_per_bin = [np.mean(np.amax(y_preds, axis=1)) for y_preds in y_pred_binned]
@@ -74,19 +76,26 @@ def reliability_diagram(y_pred, y_true, n=20):
     max_confidence_per_bin = [np.amax(y_p) for y_p in y_pred_binned]
     mean_conf_acc_diff_per_bin = [conf - acc for conf, acc in zip(mean_confidence_per_bin, mean_accuracy_per_bin)]
 
+    ece = sum([a * b for a, b in zip(bin_weight, mean_conf_acc_diff_per_bin)])
+
     # Plot results
-    conf = np.arange(-0.2, 1.2, 1.4 / n)
-    ideal_diff = [0.0 for i in range(n)]
     plt.figure()
-    plt.plot(conf, ideal_diff, "--")
-    plt.plot(max_confidence_per_bin, mean_conf_acc_diff_per_bin, "-o")
+    ax = plt.axes()
+    ax.axhline(linestyle="--", color="b")
+    ax.plot(max_confidence_per_bin, mean_conf_acc_diff_per_bin, "-o", color="r")
     plt.legend(labels=["Ideal", "Result"])
     plt.title("Reliability diagram")
     plt.xlabel("Confidence (max in bin)")
     plt.ylabel("Confidence - Accuracy (mean in bin)")
-    plt.xlim(0.0, 1.0)
+    plt.xscale('logit')
+    plt.xlim(0.01, 0.9999999)
+    ax.xaxis.set_minor_formatter(mpl.ticker.FormatStrFormatter(""))
+    ax.tick_params(axis='both', which='major', labelsize=8)
+    ax.tick_params(axis='both', which='minor', labelsize=6)
     plt.grid()
     plt.show()
+
+    return ece
 
 
 if __name__ == "__main__":
@@ -153,4 +162,5 @@ if __name__ == "__main__":
     acc_test = accuracy_score(y_true=np.argmax(y_test, axis=1), y_pred=np.argmax(y_pred, axis=1))
     print("\n---- Test Results ----")
     print('Loss: {} \nAccuracy: {}'.format(loss_test, acc_test))
-    reliability_diagram(y_pred=y_pred, y_true=y_test)
+    ece = reliability_diagram(y_pred, y_test, n_samples)
+    print('ECE:', ece)
