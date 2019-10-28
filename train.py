@@ -25,12 +25,12 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 tf.set_random_seed(12)
-START_LEARNING_RATE = 5e-2
-END_LEARNING_RATE = 0.01*START_LEARNING_RATE
+START_LEARNING_RATE = 0.05
+END_LEARNING_RATE = 0.01 * START_LEARNING_RATE
 MOMENTUM = 0.9
 WEIGHT_DECAY = 5e-4
 EPOCHS = 300
-BATCH_SIZE = 128
+BATCH_SIZE = 512
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
 CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
 
@@ -49,14 +49,17 @@ def parse_arguments():
                         help="Path to save checkpoints to.")
     parser.add_argument("--load_checkpoint_path", dest="load_checkpoint_path", metavar='LOAD CHECKPOINT PATH', default=None,
                         help="Path to load checkpoint from.")
+    parser.add_argument("--save_plots_path", dest="save_plots_path", metavar="SAVE PLOTS PATH", default=None,
+                        help="Path to save plots to.")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
+    assert args.save_plots_path is None or args.save_plots_path[-1] == "/", "Please put / at the end of plot path."
 
     return args
 
 
-def plot_cost(c_v):
+def plot_cost(c_v, save_plots_path):
     """
     Creates a plot of validation cost c_v
     and displays it.
@@ -69,10 +72,10 @@ def plot_cost(c_v):
     plt.title(title)
     plt.xlabel("Epoch")
     plt.ylabel("Cost")
-    plt.show()
+    plt.savefig(save_plots_path + "sgd_cost_plot.png")
 
 
-def plot_acc(acc_v):
+def plot_acc(acc_v, save_plots_path):
     """
     Creates a plot of validation cost c_v
     and displays it.
@@ -85,7 +88,7 @@ def plot_acc(acc_v):
     plt.title(title)
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    plt.show()
+    plt.savefig(save_plots_path + "sgd_accuracy_plot.png")
 
 
 if __name__ == "__main__":
@@ -194,5 +197,6 @@ if __name__ == "__main__":
         print("Weights were saved in {}".format(args.save_weight_path + "sgd_weights.npz"))
 
     # Plot validation stats
-    plot_cost(validation_loss)
-    plot_acc(validation_acc)
+    if args.save_plots_path is not None:
+        plot_cost(validation_loss, args.save_plots_path)
+        plot_acc(validation_acc, args.save_plots_path)
