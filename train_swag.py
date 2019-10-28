@@ -127,31 +127,31 @@ if __name__ == "__main__":
     predicted_correctly = tf.equal(tf.argmax(predictions, 1), tf.argmax(y_input, 1))
     accuracy = tf.reduce_mean(tf.cast(predicted_correctly, tf.float32))
 
-    # Create path for checkpoints
-    if args.save_checkpoint_path is not None:
+    # Create checkpoint object if loading/saving checkpoints
+    if args.save_checkpoint_path is not None or args.load_checkpoint_path is not None:
         checkpoint = tf.train.Saver()
+
+    # Create checkpoint path is saving checkpoints
+    if args.save_checkpoint_path is not None:
         save_dir = args.save_checkpoint_path
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         save_path = os.path.join(save_dir, 'model')
 
+    # Load checkpoint
     if args.load_checkpoint_path is not None:
-        try:
-            print("Trying to restore last checkpoint ...")
+        print("Trying to restore last checkpoint ...")
 
-            # Use TensorFlow to find the latest checkpoint - if any.
-            last_ckpt_path = tf.train.latest_checkpoint(checkpoint_dir=args.load_checkpoint_path)
+        # Use TensorFlow to find the latest checkpoint - if any.
+        last_ckpt_path = tf.train.latest_checkpoint(checkpoint_dir=args.load_checkpoint_path)
 
-            # Try and load the data in the checkpoint.
-            checkpoint.restore(sess, save_path=last_ckpt_path)
+        # Try and load the data in the checkpoint.
+        checkpoint.restore(sess, save_path=last_ckpt_path)
 
-            # If we get to this point, the checkpoint was successfully loaded.
-            print("Restored checkpoint from:", last_ckpt_path)
-        except:
-            # If the above failed for some reason, simply
-            # initialize all the variables for the TensorFlow graph.
-            print("Failed to restore checkpoint. Initializing variables instead.")
-            sess.run(tf.initialize_all_variables())
+        # If we get to this point, the checkpoint was successfully loaded.
+        print("Restored checkpoint from:", last_ckpt_path)
+
+    # Initialize weights if not loading checkpoint
     else:
         sess.run(tf.initialize_all_variables())
 
