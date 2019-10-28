@@ -24,13 +24,13 @@ session = InteractiveSession(config=config)
 
 
 # Hyperparameters
-LEARNING_RATE = 1e-2
-MOMENTUM = 0.9
-EPOCHS = 40
+LEARNING_RATE = 0.01
+MOMENTUM = 0
+EPOCHS = 300
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
-CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
-SWAG_START_EPOCH = 10  # after how many epochs of training to start collecting samples for SWAG
+CHECKPOINT_INTERVAL = 50  # How often to save checkpoints (epochs)
+SWAG_START_EPOCH = 160  # after how many epochs of training to start collecting samples for SWAG
 K_SWAG = 20  # maximum number of columns in deviation matrix D
 
 
@@ -55,23 +55,24 @@ def parse_arguments():
     return args
 
 
-def plot_cost(c_v):
+def plot_cost(c_v, c_t, save_plots_path):
     """
     Creates a plot of validation cost c_v
     and displays it.
     """
 
     plt.figure()
-    plt.plot(c_v, label='Validation cost')
+    plt.plot(c_v, label='Validation loss')
+    plt.plot(c_t, label='Training loss')
     plt.legend()
-    title = 'Costs per epoch'
+    title = 'Loss per epoch'
     plt.title(title)
     plt.xlabel("Epoch")
-    plt.ylabel("Cost")
-    plt.show()
+    plt.ylabel("Loss")
+    plt.savefig(save_plots_path + "swag_loss_plot.png")
 
 
-def plot_acc(acc_v):
+def plot_acc(acc_v, acc_t, save_plots_path):
     """
     Creates a plot of validation cost c_v
     and displays it.
@@ -79,12 +80,13 @@ def plot_acc(acc_v):
 
     plt.figure()
     plt.plot(acc_v, label='Validation acc')
+    plt.plot(acc_t, label='Training acc')
     plt.legend()
     title = 'Accuracy per epoch'
     plt.title(title)
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    plt.show()
+    plt.savefig(save_plots_path + "swag_accuracy_plot.png")
 
 
 def save_swag_params(save_path, param_dict):
@@ -118,8 +120,8 @@ if __name__ == "__main__":
 
     # Define loss and optimizer
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
-    # optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
-    optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
+    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    # optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
@@ -157,6 +159,7 @@ if __name__ == "__main__":
 
     # initialization for plots
     validation_loss, validation_acc = [], []
+    training_loss, training_acc = [], []
 
     # Initialization of SWAG-parameters
     first_moment = vgg_network.get_weights_flat(sess)
@@ -180,26 +183,29 @@ if __name__ == "__main__":
                 loss_val, acc_val = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
                 print("Iteration {}, Batch loss = {}, Batch accuracy = {}".format(step + 1, loss_val, acc_val))
 
-            # Perform SWAG-update
-            if step == 0 and epoch > SWAG_START_EPOCH:
-                new_weights = vgg_network.get_weights_flat(sess)
+        # Perform SWAG-update
+        if epoch >= SWAG_START_EPOCH:
+            new_weights = vgg_network.get_weights_flat(sess)
 
-                first_moment = (n_SWAG * first_moment + new_weights) / (n_SWAG + 1)
-                second_moment = (n_SWAG * second_moment + new_weights ** 2) / (n_SWAG + 1)
+            first_moment = (n_SWAG * first_moment + new_weights) / (n_SWAG + 1)
+            second_moment = (n_SWAG * second_moment + new_weights ** 2) / (n_SWAG + 1)
 
-                if D.shape[1] == K_SWAG:
-                    D = np.delete(D, 0, 1)  # remove first column
-                new_D_col = second_moment - first_moment ** 2
-                D = np.append(D, new_D_col.reshape(new_D_col.shape[0], 1), axis=1)
+            if D.shape[1] == K_SWAG:
+                D = np.delete(D, 0, 1)  # remove first column
+            new_D_col = second_moment - first_moment ** 2
+            D = np.append(D, new_D_col.reshape(new_D_col.shape[0], 1), axis=1)
 
-                n_SWAG += 1
+            n_SWAG += 1
 
         # Storing validation data for plotting
         X_train, y_train = utils.shuffle_data(X_train, y_train)
         X_valid, y_valid = utils.shuffle_data(X_val, y_val)
         v_loss, v_acc = sess.run([loss, accuracy], feed_dict={X_input: X_val[:1000], y_input: y_val[:1000]})
+        tr_loss, tr_acc = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
         validation_loss.append(v_loss)
         validation_acc.append(v_acc)
+        training_loss.append(tr_loss)
+        training_acc.append(tr_acc)
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
         if ((epoch + 1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
@@ -217,5 +223,9 @@ if __name__ == "__main__":
     save_swag_params(args.save_param_path, param_dict)
 
     # Plot validation stats
-    plot_cost(validation_loss)
-    plot_acc(validation_acc)
+    if args.save_plots_path is not None:
+        plot_cost(validation_loss, training_loss, args.save_plots_path)
+        plot_acc(validation_acc, training_acc, args.save_plots_path)
+    else:
+        plot_cost(validation_loss, training_loss)
+        plot_acc(validation_acc, training_acc)

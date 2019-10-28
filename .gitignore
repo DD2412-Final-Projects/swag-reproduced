@@ -1,3 +1,4 @@
 weights/
 data/
 **.pyc
+checkpoints/

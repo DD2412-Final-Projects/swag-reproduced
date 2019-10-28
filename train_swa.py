@@ -24,14 +24,13 @@ session = InteractiveSession(config=config)
 
 
 # Hyperparameters
-LEARNING_RATE = 1e-2
-MOMENTUM = 0.9
-EPOCHS = 20
+LEARNING_RATE = 0.01
+MOMENTUM = 0
+EPOCHS = 300
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
-CHECKPOINT_INTERVAL = 10  # How often to save checkpoints (epochs)
-SWA_START_EPOCH = 0
-SWA_END_EPOCH = 5
+CHECKPOINT_INTERVAL = 50  # How often to save checkpoints (epochs)
+SWA_START_EPOCH = 160
 
 
 def parse_arguments():
@@ -55,23 +54,24 @@ def parse_arguments():
     return args
 
 
-def plot_cost(c_v):
+def plot_cost(c_v, c_t, save_plots_path):
     """
     Creates a plot of validation cost c_v
     and displays it.
     """
 
     plt.figure()
-    plt.plot(c_v, label='Validation cost')
+    plt.plot(c_v, label='Validation loss')
+    plt.plot(c_t, label='Training loss')
     plt.legend()
-    title = 'Costs per epoch'
+    title = 'Loss per epoch'
     plt.title(title)
     plt.xlabel("Epoch")
-    plt.ylabel("Cost")
-    plt.show()
+    plt.ylabel("Loss")
+    plt.savefig(save_plots_path + "swa_loss_plot.png")
 
 
-def plot_acc(acc_v):
+def plot_acc(acc_v, acc_t, save_plots_path):
     """
     Creates a plot of validation cost c_v
     and displays it.
@@ -79,12 +79,13 @@ def plot_acc(acc_v):
 
     plt.figure()
     plt.plot(acc_v, label='Validation acc')
+    plt.plot(acc_t, label='Training acc')
     plt.legend()
     title = 'Accuracy per epoch'
     plt.title(title)
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    plt.show()
+    plt.savefig(save_plots_path + "swa_accuracy_plot.png")
 
 
 if __name__ == "__main__":
@@ -110,8 +111,8 @@ if __name__ == "__main__":
 
     # Define loss and optimizer
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
-    # optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate)
-    optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
+    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
+    # optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
@@ -149,6 +150,7 @@ if __name__ == "__main__":
 
     # initialization for plots
     validation_loss, validation_acc = [], []
+    training_loss, training_acc = [], []
 
     # Run training with SWA
     for epoch in range(EPOCHS):
@@ -169,8 +171,11 @@ if __name__ == "__main__":
         X_train, y_train = utils.shuffle_data(X_train, y_train)
         X_valid, y_valid = utils.shuffle_data(X_val, y_val)
         v_loss, v_acc = sess.run([loss, accuracy], feed_dict={X_input: X_val[:1000], y_input: y_val[:1000]})
+        tr_loss, tr_acc = sess.run([loss, accuracy], feed_dict={X_input: X_batch, y_input: y_batch})
         validation_loss.append(v_loss)
         validation_acc.append(v_acc)
+        training_loss.append(tr_loss)
+        training_acc.append(tr_acc)
 
         # Save all variables of the TensorFlow graph to a checkpoint after a certain number of epochs.
         if ((epoch + 1) % CHECKPOINT_INTERVAL == 0) and args.save_checkpoint_path is not None:
@@ -178,7 +183,7 @@ if __name__ == "__main__":
             print("Saved checkpoint for epoch {}".format(epoch))
 
         # Add to SWA-average
-        if epoch in range(SWA_START_EPOCH, SWA_END_EPOCH):
+        if epoch >= SWA_START_EPOCH:
 
             list_of_current_weights = [sess.run(weights) for weights in vgg_network.parameters]
 
@@ -188,11 +193,15 @@ if __name__ == "__main__":
                 SWA_weights = [sum(weights) for weights in zip(SWA_weights, list_of_current_weights)]
 
     # Compute final SWA-weights
-    SWA_weights = [weights / (SWA_END_EPOCH - SWA_START_EPOCH) for weights in SWA_weights]
+    SWA_weights = [weights / (EPOCHS - SWA_START_EPOCH) for weights in SWA_weights]
 
     # Save SWA-weights
     vgg_network.save_weights(args.save_weight_path, "swa_weights", sess)
 
     # Plot validation stats
-    plot_cost(validation_loss)
-    plot_acc(validation_acc)
+    if args.save_plots_path is not None:
+        plot_cost(validation_loss, training_loss, args.save_plots_path)
+        plot_acc(validation_acc, training_acc, args.save_plots_path)
+    else:
+        plot_cost(validation_loss, training_loss)
+        plot_acc(validation_acc, training_acc)
