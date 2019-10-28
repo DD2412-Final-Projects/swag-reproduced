@@ -26,7 +26,7 @@ session = InteractiveSession(config=config)
 # Hyperparameters
 tf.set_random_seed(12)
 START_LEARNING_RATE = 5e-2
-END_LEARNING_RATE = .01 * START_LEARNING_RATE
+END_LEARNING_RATE = 0.01 * START_LEARNING_RATE
 MOMENTUM = 0
 WEIGHT_DECAY = 5e-4
 EPOCHS = 300
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
         print("\n---- Epoch {} ----\n".format(epoch + 1))
         print("Learning rate {}".format(current_learning_rate))
-        if .9 * EPOCHS > epoch + 1 >= .5 * EPOCHS:
+        if .9 * EPOCHS > epoch + 1 > .5 * EPOCHS:
             current_learning_rate -= (START_LEARNING_RATE - END_LEARNING_RATE) / (.4 * EPOCHS)  # Linear decay over 40% of epochs
 
         for step in range(n_samples // BATCH_SIZE):
