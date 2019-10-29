@@ -136,12 +136,15 @@ if __name__ == "__main__":
 
         # Sample weights
         if args.swag_type == "full":
-            z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
-            z2 = np.random.normal(0, 1, (param_dict["K_SWAG"],))  # z2 ~ N(0, I_K)
+            d = param_dict["theta_SWA"].shape[0]
+            K = param_dict["K_SWAG"]
+            z1 = np.random.normal(np.zeros((d,)), np.ones((d,)))  # z1 ~ N(0, I_d)
+            z2 = np.random.normal(np.zeros((K,)), np.ones((K,)))  # z2 ~ N(0, I_K)
             weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(np.sqrt(param_dict["sigma_SWAG"]), z1) + \
-                (1 / np.sqrt(2 * (param_dict["K_SWAG"] - 1))) * np.dot(param_dict["D_SWAG"], z2)
+                (1 / np.sqrt(2 * (K - 1))) * np.dot(param_dict["D_SWAG"], z2)
         elif args.swag_type == "diag":
-            z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
+            d = param_dict["theta_SWA"].shape[0]
+            z1 = np.random.normal(np.zeros((d,)), np.ones((d,)))  # z1 ~ N(0, I_d)
             weight_sample = param_dict["theta_SWA"] + np.multiply(np.sqrt(param_dict["sigma_SWAG"]), z1)
         elif args.swag_type == "swa":
             weight_sample = param_dict["theta_SWA"]
