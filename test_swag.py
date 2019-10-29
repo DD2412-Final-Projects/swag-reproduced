@@ -45,7 +45,7 @@ def parse_arguments():
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
     assert args.load_param_file is not None, "SWAG parameter file must be specified."
-    assert args.swag_type in ["diag", "full"], "SWAG type argument must be either 'full' or 'diag'"
+    assert args.swag_type in ["diag", "full", "swa"], "SWAG type argument must be either 'full', 'diag', or 'swa'"
 
     return args
 
