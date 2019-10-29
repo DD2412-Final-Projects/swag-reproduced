@@ -90,7 +90,7 @@ def reliability_diagram(y_pred, y_true, n_sample, n=20):
     ax.tick_params(axis='both', which='major', labelsize=8)
     ax.tick_params(axis='both', which='minor', labelsize=6)
     plt.grid()
-    plt.show()
+    # plt.show()
 
     return ece, max_confidence_per_bin, mean_conf_acc_diff_per_bin
 

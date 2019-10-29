@@ -26,7 +26,7 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 BATCH_SIZE = 128
-S = 1  # number of samples to take from the SWAG-distribution
+S = 30  # number of samples to take from the SWAG-distribution
 
 
 def parse_arguments():
@@ -39,13 +39,13 @@ def parse_arguments():
                         help="Path to data that has been preprocessed using preprocess_data.py.")
     parser.add_argument("--load_param_file", dest="load_param_file", metavar="LOAD PARAMETER FILE", default=None,
                         help="File to load trained SWAG parameters for the network from.")
-    parser.add_argument("--swag_type", dest="swag_type", metavar="SWAG_TYPE", default="full",
-                        help="Choose between 'full' or 'diag'. Determines whether regular SWAG or SWAG-Diag is used. Defaults to regular SWAG.")
+    parser.add_argument("--mode", dest="mode", metavar="MODE", default="swag",
+                        help="Choose between 'swa', 'swag-diag', 'swag', or 'sgd-noise'. Defaults to swag.")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
     assert args.load_param_file is not None, "SWAG parameter file must be specified."
-    assert args.swag_type in ["diag", "full", "swa"], "SWAG type argument must be either 'full', 'diag', or 'swa'"
+    assert args.mode in ["swa", "swag-diag", "swag", "sgd-noise"], "SWAG type argument must be either 'swa', 'swag-diag', 'swag', or 'sgd-noise'"
 
     return args
 
@@ -93,7 +93,7 @@ def reliability_diagram(y_pred, y_true, n_sample, n=20):
     ax.tick_params(axis='both', which='major', labelsize=8)
     ax.tick_params(axis='both', which='minor', labelsize=6)
     plt.grid()
-    plt.show()
+    # plt.show()
 
     return ece, max_confidence_per_bin, mean_conf_acc_diff_per_bin
 
@@ -128,14 +128,14 @@ if __name__ == "__main__":
 
     # Sample from the distribution of weights, compute predictions
     # and keep a sum of predictions across sampled weights
-    if args.swag_type == "swa":
+    if args.mode == "swa":
         S = 1
     y_pred_sum = np.zeros((n_samples, n_classes))
     print("Computing test performance..")
     for s in tqdm(range(S)):
 
         # Sample weights
-        if args.swag_type == "full":
+        if args.mode == "swag":
             d = param_dict["theta_SWA"].shape[0]
             K = param_dict["K_SWAG"]
             z1 = np.random.normal(np.zeros((d,)), np.ones((d,)))  # z1 ~ N(0, I_d)
@@ -143,16 +143,21 @@ if __name__ == "__main__":
             sigma_SWAG = np.clip(param_dict["sigma_SWAG"], a_min=1e-30, a_max=None)
             weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(np.sqrt(sigma_SWAG), z1) + \
                 (1 / np.sqrt(2 * (K - 1))) * np.dot(param_dict["D_SWAG"], z2)
-        elif args.swag_type == "diag":
+        elif args.mode == "swag-diag":
             d = param_dict["theta_SWA"].shape[0]
             z1 = np.random.normal(np.zeros((d,)), np.zeros((d,)))  # z1 ~ N(0, I_d)
             sigma_SWAG = np.clip(param_dict["sigma_SWAG"], a_min=1e-30, a_max=None)
             weight_sample = param_dict["theta_SWA"] + np.multiply(np.sqrt(sigma_SWAG), z1)
-        elif args.swag_type == "swa":
+        elif args.mode == "swa":
             weight_sample = param_dict["theta_SWA"]
+        elif args.mode == "sgd-noise":
+            weight_dict = {}
+            for k in param_dict.keys():
+                weight_dict[k] = param_dict[k] + np.random.normal(np.zeros(param_dict[k].shape), 0.1 * np.absolute(param_dict[k]))
 
         # Load the weight sample into the network
-        weight_dict = vgg_network.unflatten_weights(weight_sample)
+        if args.mode != "sgd-noise":
+            weight_dict = vgg_network.unflatten_weights(weight_sample)
         vgg_network.load_weights(weight_dict, sess)
 
         for step in range(int(np.ceil(n_samples / BATCH_SIZE))):
