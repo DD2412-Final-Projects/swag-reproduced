@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
     # Compute final predictions
     y_pred = (1 / S) * y_pred_sum
-    print(y_pred[0, :])
+    print(np.sum(y_pred[0, :]))
 
     # Display results
     loss_test = log_loss(y_true=y_test, y_pred=y_pred)
