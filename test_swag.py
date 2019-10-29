@@ -128,6 +128,8 @@ if __name__ == "__main__":
 
     # Sample from the distribution of weights, compute predictions
     # and keep a sum of predictions across sampled weights
+    if args.swag_type == "swa":
+        S = 1
     y_pred_sum = np.zeros((n_samples, n_classes))
     print("Computing test performance..")
     for s in tqdm(range(S)):
@@ -141,6 +143,8 @@ if __name__ == "__main__":
         elif args.swag_type == "diag":
             z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
             weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(np.sqrt(param_dict["sigma_SWAG"]), z1)
+        elif args.swag_type == "swa":
+            weight_sample = param_dict["theta_SWA"]
 
         # Load the weight sample into the network
         weight_dict = vgg_network.unflatten_weights(weight_sample)
@@ -156,6 +160,7 @@ if __name__ == "__main__":
 
     # Compute final predictions
     y_pred = (1 / S) * y_pred_sum
+    print(y_pred[0, :])
 
     # Display results
     loss_test = log_loss(y_true=y_test, y_pred=y_pred)
