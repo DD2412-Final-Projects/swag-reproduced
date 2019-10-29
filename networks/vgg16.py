@@ -16,7 +16,7 @@ DROPOUT_RATE = 0.05
 
 class VGG16:
 
-    def __init__(self, imgs, n_classes, weights=None, sess=None):
+    def __init__(self, imgs, n_classes, weights=None, sess=None, dropout=DROPOUT_RATE):
         """
         Initializes the VGG16 network.
         """
@@ -26,6 +26,7 @@ class VGG16:
         self.conv_initializer = tf.contrib.layers.variance_scaling_initializer()  # He initilization
         self.fc_initializer = tf.random_normal_initializer(mean=0, stddev=0.01)
         self.weight_keys = []
+        self.dropout = DROPOUT_RATE
         self.convlayers()
         self.fc_layers()
         self.probs = tf.nn.softmax(self.fc3l)
@@ -69,7 +70,7 @@ class VGG16:
 
         # conv1_1
         with tf.name_scope('conv1_1') as scope:
-            images = tf.nn.dropout(images, rate=DROPOUT_RATE)
+            images = tf.nn.dropout(images, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 3, 64]), name='weights')
             conv = tf.nn.conv2d(images, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[64], dtype=tf.float32),
@@ -81,7 +82,7 @@ class VGG16:
 
         # conv1_2
         with tf.name_scope('conv1_2') as scope:
-            self.conv1_1 = tf.nn.dropout(self.conv1_1, rate=DROPOUT_RATE)
+            self.conv1_1 = tf.nn.dropout(self.conv1_1, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 64, 64]), name='weights')
             conv = tf.nn.conv2d(self.conv1_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[64], dtype=tf.float32),
@@ -100,7 +101,7 @@ class VGG16:
 
         # conv2_1
         with tf.name_scope('conv2_1') as scope:
-            self.conv1_2 = tf.nn.dropout(self.conv1_2, rate=DROPOUT_RATE)
+            self.conv1_2 = tf.nn.dropout(self.conv1_2, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 64, 128]), name='weights')
             conv = tf.nn.conv2d(self.pool1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[128], dtype=tf.float32),
@@ -112,7 +113,7 @@ class VGG16:
 
         # conv2_2
         with tf.name_scope('conv2_2') as scope:
-            self.conv2_1 = tf.nn.dropout(self.conv2_1, rate=DROPOUT_RATE)
+            self.conv2_1 = tf.nn.dropout(self.conv2_1, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 128, 128]), name='weights')
             conv = tf.nn.conv2d(self.conv2_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[128], dtype=tf.float32),
@@ -131,7 +132,7 @@ class VGG16:
 
         # conv3_1
         with tf.name_scope('conv3_1') as scope:
-            self.conv2_2 = tf.nn.dropout(self.conv2_2, rate=DROPOUT_RATE)
+            self.conv2_2 = tf.nn.dropout(self.conv2_2, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 128, 256]), name='weights')
             conv = tf.nn.conv2d(self.pool2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[256], dtype=tf.float32),
@@ -143,7 +144,7 @@ class VGG16:
 
         # conv3_2
         with tf.name_scope('conv3_2') as scope:
-            self.conv3_1 = tf.nn.dropout(self.conv3_1, rate=DROPOUT_RATE)
+            self.conv3_1 = tf.nn.dropout(self.conv3_1, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 256, 256]), name='weights')
             conv = tf.nn.conv2d(self.conv3_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[256], dtype=tf.float32),
@@ -155,7 +156,7 @@ class VGG16:
 
         # conv3_3
         with tf.name_scope('conv3_3') as scope:
-            self.conv3_2 = tf.nn.dropout(self.conv3_2, rate=DROPOUT_RATE)
+            self.conv3_2 = tf.nn.dropout(self.conv3_2, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 256, 256]), name='weights')
             conv = tf.nn.conv2d(self.conv3_2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[256], dtype=tf.float32),
@@ -174,7 +175,7 @@ class VGG16:
 
         # conv4_1
         with tf.name_scope('conv4_1') as scope:
-            self.conv3_3 = tf.nn.dropout(self.conv3_3, rate=DROPOUT_RATE)
+            self.conv3_3 = tf.nn.dropout(self.conv3_3, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 256, 512]), name='weights')
             conv = tf.nn.conv2d(self.pool3, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
@@ -186,7 +187,7 @@ class VGG16:
 
         # conv4_2
         with tf.name_scope('conv4_2') as scope:
-            self.conv4_1 = tf.nn.dropout(self.conv4_1, rate=DROPOUT_RATE)
+            self.conv4_1 = tf.nn.dropout(self.conv4_1, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 512, 512]), name='weights')
             conv = tf.nn.conv2d(self.conv4_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
@@ -198,7 +199,7 @@ class VGG16:
 
         # conv4_3
         with tf.name_scope('conv4_3') as scope:
-            self.conv4_2 = tf.nn.dropout(self.conv4_2, rate=DROPOUT_RATE)
+            self.conv4_2 = tf.nn.dropout(self.conv4_2, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 512, 512]), name='weights')
             conv = tf.nn.conv2d(self.conv4_2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
@@ -217,7 +218,7 @@ class VGG16:
 
         # conv5_1
         with tf.name_scope('conv5_1') as scope:
-            self.conv4_3 = tf.nn.dropout(self.conv4_3, rate=DROPOUT_RATE)
+            self.conv4_3 = tf.nn.dropout(self.conv4_3, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 512, 512]), name='weights')
             conv = tf.nn.conv2d(self.pool4, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
@@ -229,7 +230,7 @@ class VGG16:
 
         # conv5_2
         with tf.name_scope('conv5_2') as scope:
-            self.conv5_1 = tf.nn.dropout(self.conv5_1, rate=DROPOUT_RATE)
+            self.conv5_1 = tf.nn.dropout(self.conv5_1, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 512, 512]), name='weights')
             conv = tf.nn.conv2d(self.conv5_1, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
@@ -241,7 +242,7 @@ class VGG16:
 
         # conv5_3
         with tf.name_scope('conv5_3') as scope:
-            self.conv5_2 = tf.nn.dropout(self.conv5_2, rate=DROPOUT_RATE)
+            self.conv5_2 = tf.nn.dropout(self.conv5_2, rate=self.dropout)
             kernel = tf.Variable(self.conv_initializer([3, 3, 512, 512]), name='weights')
             conv = tf.nn.conv2d(self.conv5_2, kernel, [1, 1, 1, 1], padding='SAME')
             biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
@@ -270,7 +271,7 @@ class VGG16:
                                trainable=True, name='biases')
             pool5_flat = tf.reshape(self.pool5, [-1, shape])
             fc1l = tf.nn.bias_add(tf.matmul(pool5_flat, fc1w), fc1b)
-            fc1l = tf.nn.dropout(fc1l, rate=DROPOUT_RATE)
+            fc1l = tf.nn.dropout(fc1l, rate=self.dropout)
             self.fc1 = tf.nn.relu(fc1l)
             self.parameters += [fc1w, fc1b]
             self.weight_keys += ["fc1_W", "fc1_b"]
@@ -281,7 +282,7 @@ class VGG16:
             fc2b = tf.Variable(tf.constant(1.0, shape=[512], dtype=tf.float32),
                                trainable=True, name='biases')
             fc2l = tf.nn.bias_add(tf.matmul(self.fc1, fc2w), fc2b)
-            fc2l = tf.nn.dropout(fc2l, rate=DROPOUT_RATE)
+            fc2l = tf.nn.dropout(fc2l, rate=self.dropout)
             self.fc2 = tf.nn.relu(fc2l)
             self.parameters += [fc2w, fc2b]
             self.weight_keys += ["fc2_W", "fc2_b"]
@@ -292,7 +293,7 @@ class VGG16:
             fc3b = tf.Variable(tf.constant(1.0, shape=[self.n_classes], dtype=tf.float32),
                                trainable=True, name='biases')
             fc3l = tf.nn.bias_add(tf.matmul(self.fc2, fc3w), fc3b)
-            self.fc3l = tf.nn.dropout(fc3l, rate=DROPOUT_RATE)
+            self.fc3l = tf.nn.dropout(fc3l, rate=self.dropout)
             self.parameters += [fc3w, fc3b]
             self.weight_keys += ["fc3_W", "fc3_b"]
 
