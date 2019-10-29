@@ -113,7 +113,7 @@ if __name__ == "__main__":
     sess = tf.Session()
     X_input = tf.placeholder(tf.float32, [None, width, height, n_channels])
     y_input = tf.placeholder(tf.float32, [None, n_classes])
-    vgg_network = VGG16(X_input, n_classes, weights=None, sess=sess, dropout=0)
+    vgg_network = VGG16(X_input, n_classes, weights=None, sess=sess)
     logits = vgg_network.fc3l  # Output of the final layer
 
     # Define loss and optimizer
