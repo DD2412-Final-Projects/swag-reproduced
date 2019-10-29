@@ -2,3 +2,4 @@ weights/
 data/
 **.pyc
 checkpoints/
+plots/
