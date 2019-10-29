@@ -95,7 +95,7 @@ def reliability_diagram(y_pred, y_true, n_sample, n=20):
     plt.grid()
     plt.show()
 
-    return ece
+    return ece, max_confidence_per_bin, mean_conf_acc_diff_per_bin
 
 
 if __name__ == "__main__":
@@ -162,5 +162,8 @@ if __name__ == "__main__":
     acc_test = accuracy_score(y_true=np.argmax(y_test, axis=1), y_pred=np.argmax(y_pred, axis=1))
     print("\n---- Test Results ----")
     print('Loss: {} \nAccuracy: {}'.format(loss_test, acc_test))
-    ece = reliability_diagram(y_pred, y_test, n_samples)
+    ece, max_conf, conf_acc_diff = reliability_diagram(y_pred, y_test, n_samples)
     print('ECE:', ece)
+    print("\n To recreate reliability diagram:")
+    print("max(conf): ", max_conf)
+    print("conf - acc: ", conf_acc_diff)
