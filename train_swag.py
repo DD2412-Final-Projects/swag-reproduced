@@ -48,6 +48,8 @@ def parse_arguments():
                         help="Path to save checkpoints to")
     parser.add_argument("--load_checkpoint_path", dest="load_checkpoint_path", metavar='LOAD CHECKPOINT PATH', default=None,
                         help="Path to load checkpoint from.")
+    parser.add_argument("--save_plots_path", dest="save_plots_path", metavar="SAVE PLOTS PATH", default=None,
+                        help="Path to save plots to.")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
