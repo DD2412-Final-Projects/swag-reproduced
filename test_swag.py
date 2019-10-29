@@ -26,7 +26,7 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 BATCH_SIZE = 128
-S = 30  # number of samples to take from the SWAG-distribution
+S = 1  # number of samples to take from the SWAG-distribution
 
 
 def parse_arguments():
@@ -142,7 +142,7 @@ if __name__ == "__main__":
                 (1 / np.sqrt(2 * (param_dict["K_SWAG"] - 1))) * np.dot(param_dict["D_SWAG"], z2)
         elif args.swag_type == "diag":
             z1 = np.random.normal(0, 1, (param_dict["theta_SWA"].shape[0],))  # z1 ~ N(0, I_d)
-            weight_sample = param_dict["theta_SWA"] + (1 / np.sqrt(2)) * np.multiply(np.sqrt(param_dict["sigma_SWAG"]), z1)
+            weight_sample = param_dict["theta_SWA"] + np.multiply(np.sqrt(param_dict["sigma_SWAG"]), z1)
         elif args.swag_type == "swa":
             weight_sample = param_dict["theta_SWA"]
 
@@ -160,7 +160,6 @@ if __name__ == "__main__":
 
     # Compute final predictions
     y_pred = (1 / S) * y_pred_sum
-    print(np.sum(y_pred[0, :]))
 
     # Display results
     loss_test = log_loss(y_true=y_test, y_pred=y_pred)
