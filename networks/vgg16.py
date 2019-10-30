@@ -16,7 +16,7 @@ DROPOUT_RATE = 0.05
 
 class VGG16:
 
-    def __init__(self, imgs, n_classes, weights=None, sess=None, dropout=DROPOUT_RATE):
+    def __init__(self, imgs, n_classes, weights=None, sess=None, dropout=DROPOUT_RATE, augment_inputs=True):
         """
         Initializes the VGG16 network.
         """
@@ -27,6 +27,7 @@ class VGG16:
         self.fc_initializer = tf.random_normal_initializer(mean=0, stddev=0.01)
         self.weight_keys = []
         self.dropout = DROPOUT_RATE
+        self.augment_inputs = augment_inputs
         self.convlayers()
         self.fc_layers()
         self.probs = tf.nn.softmax(self.fc3l)
@@ -65,7 +66,8 @@ class VGG16:
             images = self.imgs / 255
             mean = tf.constant([0.485, 0.456, 0.406], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
             stddev = tf.constant([0.229, 0.224, 0.225], dtype=tf.float32, shape=[1, 1, 1, 3], name="img_stddev")
-            images = tf.map_fn(lambda image: self.distort_image(image), images)
+            if self.augment_inputs:
+                images = tf.map_fn(lambda image: self.distort_image(image), images)
             images = (images - mean) / stddev
 
         # conv1_1
