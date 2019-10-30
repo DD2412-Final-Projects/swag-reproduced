@@ -41,6 +41,8 @@ def parse_arguments():
                         help="File to load trained SWAG parameters for the network from.")
     parser.add_argument("--mode", dest="mode", metavar="MODE", default="swag",
                         help="Choose between 'swa', 'swag-diag', 'swag', or 'sgd-noise'. Defaults to swag.")
+    parser.add_argument("--noise", dest="noise", metavar="NOISE", type=int, default=0.1,
+                        help="Amount of noise in sgd-noise. Default: 0.1")
 
     args = parser.parse_args()
     assert args.data_path is not None, "Data path must be specified."
@@ -153,7 +155,7 @@ if __name__ == "__main__":
         elif args.mode == "sgd-noise":
             weight_dict = {}
             for k in param_dict.keys():
-                weight_dict[k] = param_dict[k] + np.random.normal(np.zeros(param_dict[k].shape), 0.1 * np.absolute(param_dict[k]))
+                weight_dict[k] = param_dict[k] + np.random.normal(np.zeros(param_dict[k].shape), args.noise * np.absolute(param_dict[k]))
 
         # Load the weight sample into the network
         if args.mode != "sgd-noise":
