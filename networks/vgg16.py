@@ -63,7 +63,8 @@ class VGG16:
 
         # zero-mean input
         with tf.name_scope('preprocess') as scope:
-            images = self.imgs / 255
+            images = tf.image.resize(self.imgs, 32)
+            images = images / 255
             mean = tf.constant([0.485, 0.456, 0.406], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
             stddev = tf.constant([0.229, 0.224, 0.225], dtype=tf.float32, shape=[1, 1, 1, 3], name="img_stddev")
             if self.augment_inputs:
