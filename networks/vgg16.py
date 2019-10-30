@@ -26,7 +26,7 @@ class VGG16:
         self.conv_initializer = tf.contrib.layers.variance_scaling_initializer()  # He initilization
         self.fc_initializer = tf.random_normal_initializer(mean=0, stddev=0.01)
         self.weight_keys = []
-        self.dropout = DROPOUT_RATE
+        self.dropout = dropout
         self.augment_inputs = augment_inputs
         self.convlayers()
         self.fc_layers()
