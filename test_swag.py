@@ -78,7 +78,7 @@ def reliability_diagram(y_pred, y_true, n_sample, n=20):
     max_confidence_per_bin = [np.amax(y_p) for y_p in y_pred_binned]
     mean_conf_acc_diff_per_bin = [conf - acc for conf, acc in zip(mean_confidence_per_bin, mean_accuracy_per_bin)]
 
-    ece = sum([a * b for a, b in zip(bin_weight, mean_conf_acc_diff_per_bin)])
+    ece = sum([np.abs(a) * np.abs(b) for a, b in zip(bin_weight, mean_conf_acc_diff_per_bin)])
 
     # Plot results
     plt.figure()
