@@ -145,7 +145,7 @@ if __name__ == "__main__":
                 (1 / np.sqrt(2 * (K - 1))) * np.dot(param_dict["D_SWAG"], z2)
         elif args.mode == "swag-diag":
             d = param_dict["theta_SWA"].shape[0]
-            z1 = np.random.normal(np.zeros((d,)), np.zeros((d,)))  # z1 ~ N(0, I_d)
+            z1 = np.random.normal(np.zeros((d,)), np.ones((d,)))  # z1 ~ N(0, I_d)
             sigma_SWAG = np.clip(param_dict["sigma_SWAG"], a_min=1e-30, a_max=None)
             weight_sample = param_dict["theta_SWA"] + np.multiply(np.sqrt(sigma_SWAG), z1)
         elif args.mode == "swa":
