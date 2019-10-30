@@ -41,7 +41,7 @@ def parse_arguments():
                         help="File to load trained SWAG parameters for the network from.")
     parser.add_argument("--mode", dest="mode", metavar="MODE", default="swag",
                         help="Choose between 'swa', 'swag-diag', 'swag', or 'sgd-noise'. Defaults to swag.")
-    parser.add_argument("--noise", dest="noise", metavar="NOISE", type=int, default=0.1,
+    parser.add_argument("--noise", dest="noise", metavar="NOISE", type=float, default=0.1,
                         help="Amount of noise in sgd-noise. Default: 0.1")
 
     args = parser.parse_args()
