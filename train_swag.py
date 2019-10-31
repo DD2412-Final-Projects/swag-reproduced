@@ -25,7 +25,8 @@ session = InteractiveSession(config=config)
 
 # Hyperparameters
 LEARNING_RATE = 0.01
-MOMENTUM = 0
+MOMENTUM = 0.9
+WEIGHT_DECAY = 5e-4
 EPOCHS = 300
 BATCH_SIZE = 128
 DISPLAY_INTERVAL = 10  # How often to display loss/accuracy during training (steps)
@@ -121,9 +122,11 @@ if __name__ == "__main__":
     logits = vgg_network.fc3l  # Output of the final layer
 
     # Define loss and optimizer
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
-    optimizer = tf.compat.v1.train.GradientDescentOptimizer(LEARNING_RATE)
-    # optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
+    weights = tf.trainable_variables()
+    l2_reg = WEIGHT_DECAY * tf.add_n([tf.nn.l2_loss(w) for w in weights])
+    ce_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=y_input))
+    loss = ce_loss + l2_reg
+    optimizer = tf.contrib.optimizer_v2.MomentumOptimizer(LEARNING_RATE, MOMENTUM)
     train_operation = optimizer.minimize(loss)
 
     # Define evaluation metrics
