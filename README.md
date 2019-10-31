@@ -46,7 +46,7 @@ To test a model trained with SWA/SWAG-Diag/SWAG, use `test_swag.py`. Example:
 python test_swag.py --data_path data/cifar-10/ --load_patam_file weights/swag_params.npz --mode swag
 ```
 
-## Resources used when creating our implementation
+## Resources used in creating our implementation
 * The reproduced paper - ["A Simple Baseline for Bayesian Uncertainty in Deep Learning"](https://arxiv.org/pdf/1902.02476.pdf)   
 * A vital paper referenced by the authors - ["Averaging Weights Leads to Wider Optima and Better Generalization"](https://arxiv.org/pdf/1803.05407.pdf)
 * TensorFlow implementation of VGG-16: https://www.cs.toronto.edu/~frossard/post/vgg16/.   
