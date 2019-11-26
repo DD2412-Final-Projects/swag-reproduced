@@ -25,23 +25,23 @@ To install all necessary dependencies for the implementation, run the command
 ```
 pip install -r requirements.txt
 ```
-To preprocess a dataset to the required format, use ´preprocess_data.py´. Example:
-´´´
+To preprocess a dataset to the required format, use ´preprocess_data.py´. Example:   
+```
 python preprocess_data.py --data_path data/cifar-10-raw/ --train_frac 0.9 --valid_frac 0.1 --save_path data/cifar-10/ --data_set cifar10
-´´´
-To train a VGG-16 model using regular SGD, use `train.py`. Example:
+```
+To train a VGG-16 model using regular SGD, use `train.py`. Example:   
 ```
 python train.py --data_path data/cifar-10/ --save_weight_path weights/ --save_checkpoint_path checkpoints/ --save_plots_path plots/
 ```
-To train a VGG-16 model using SWA/SWAG-dIag/SWAG, use ´train_swag.py´. Example:
+To train a VGG-16 model using SWA/SWAG-dIag/SWAG, use ´train_swag.py´. Example:   
 ```
 python train_swag.py --data_path data/cifar-10/ --save_param_path weights/ --save_checkpoint_path checkpoints/ --save_plots_path plots/
 ```
-To test a model trained with SGD, use `test.py`. Example:
+To test a model trained with SGD, use `test.py`. Example:   
 ```
 python test.py --data_path data/cifar-10/ --load_weight_file weights/sgd_weights.npz
 ```
-To test a model trained with SWA/SWAG-Diag/SWAG, use `test_swag.py`. Example:
+To test a model trained with SWA/SWAG-Diag/SWAG, use `test_swag.py`. Example:   
 ```
 python test_swag.py --data_path data/cifar-10/ --load_patam_file weights/swag_params.npz --mode swag
 ```
