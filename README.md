@@ -1,5 +1,5 @@
 # Reproducibility Project - "A Simple Baseline for Bayesian Uncertainty in Deep Learning"
-This repository contains the code used in our attempt at the [NeurIPS 2019 Reproducibility Challenge](https://reproducibility-challenge.github.io/neurips2019/), in reproducing the methods proposed in the paper ["A Simple Baseline for Bayesian Uncertainty in Deep Learning"](https://arxiv.org/pdf/1902.02476.pdf) by W. Maddox et al. This project was also served as the final project of the course [DD2412](https://www.kth.se/student/kurser/kurs/DD2412?l=en) at KTH Royal Institute of Technology.
+This repository contains the code used in our attempt at the [NeurIPS 2019 Reproducibility Challenge](https://reproducibility-challenge.github.io/neurips2019/), in reproducing the methods proposed in the paper ["A Simple Baseline for Bayesian Uncertainty in Deep Learning"](https://arxiv.org/pdf/1902.02476.pdf) by W. Maddox et al. This project also served as the final project of the course [DD2412](https://www.kth.se/student/kurser/kurs/DD2412?l=en) at KTH Royal Institute of Technology.
 
 The code is implemented in TensorFlow 1.14 for Python3.
 
